@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import ProjectDetail from "./pages/ProjectDetail";
 import Profile from "./pages/Profile";
+import Signup from "./pages/Signup";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/home" element={<Home />} />
           <Route path="/project/:projectId" element={<ProjectDetail />} />
           <Route path="/profile" element={<Profile />} />

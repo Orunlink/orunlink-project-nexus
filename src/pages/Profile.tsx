@@ -1,4 +1,3 @@
-
 import Layout from "@/components/layout/Layout";
 import ProfileSection from "@/components/ui/ProfileSection";
 import ProjectCard from "@/components/ui/ProjectCard";
@@ -28,6 +27,7 @@ const mockProjects = [
     },
     likes: 124,
     comments: 23,
+    isVideo: false,
   },
   {
     id: "2",
@@ -53,6 +53,7 @@ const mockProjects = [
     },
     likes: 201,
     comments: 42,
+    isVideo: false,
   },
 ];
 
@@ -69,6 +70,7 @@ const mockCollaborations = [
     },
     likes: 156,
     comments: 28,
+    isVideo: false,
   },
   {
     id: "5",
@@ -81,6 +83,7 @@ const mockCollaborations = [
     },
     likes: 178,
     comments: 31,
+    isVideo: false,
   },
 ];
 
@@ -97,6 +100,7 @@ const mockSavedProjects = [
     },
     likes: 112,
     comments: 19,
+    isVideo: false,
   },
   {
     id: "7",
@@ -109,6 +113,7 @@ const mockSavedProjects = [
     },
     likes: 95,
     comments: 12,
+    isVideo: false,
   },
 ];
 
