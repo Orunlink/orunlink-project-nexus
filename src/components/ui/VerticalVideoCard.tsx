@@ -39,8 +39,8 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* Top green header */}
-      <div className="absolute top-0 left-0 right-0 h-16 bg-[#2d5830] z-10 rounded-b-lg flex justify-end items-center px-4">
+      {/* Top purple header - changed from green to purple and made fixed */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 rounded-b-lg flex justify-end items-center px-4">
         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
           <img 
             src="/lovable-uploads/f83e4b3e-e786-4333-90ed-d750a17c2dd1.png" 
@@ -133,8 +133,8 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         </p>
       </div>
 
-      {/* Bottom green footer */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-[#2d5830] z-10"></div>
+      {/* Bottom purple footer - changed from green to purple and made fixed */}
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10"></div>
     </div>
   );
 };
