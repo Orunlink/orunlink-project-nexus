@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
-import ProjectCard from "@/components/ui/ProjectCard";
+import { useNavigate } from "react-router-dom";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Sliders } from "lucide-react";
+import { Handshake, Heart, MessageSquare, Share2, Bookmark, ChevronDown } from "lucide-react";
+import VerticalVideoCard from "@/components/ui/VerticalVideoCard";
 
 // Mock data
 const mockProjects = [
@@ -84,94 +85,77 @@ const mockProjects = [
   },
 ];
 
-const categories = [
-  "All",
-  "Design",
-  "Development",
-  "Marketing",
-  "Business",
-  "Technology",
-  "Art",
-  "Education",
-];
-
 const Home = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState(mockProjects);
+  const navigate = useNavigate();
 
-  // Simulate fetching projects
-  useEffect(() => {
-    // In a real app, we would fetch from an API here
-    setProjects(mockProjects);
-  }, []);
+  // Handle scroll to change active project
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const scrollPosition = container.scrollTop;
+    const projectHeight = window.innerHeight;
+    const newIndex = Math.floor(scrollPosition / projectHeight);
+    
+    if (newIndex !== activeIndex && newIndex < projects.length) {
+      setActiveIndex(newIndex);
+    }
+  };
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and filters */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="relative flex-grow max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search projects..."
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <Button variant="outline" className="flex items-center">
-              <Sliders className="w-4 h-4 mr-2" />
-              Filters
-            </Button>
-          </div>
-          
-          {/* Categories */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={activeCategory === category ? "default" : "outline"}
-                className={
-                  activeCategory === category
-                    ? "bg-orunlink-purple hover:bg-orunlink-dark"
-                    : ""
-                }
-                onClick={() => setActiveCategory(category)}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        </div>
-        
-        {/* Projects grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              id={project.id}
-              title={project.title}
-              description={project.description}
-              imageUrl={project.imageUrl}
-              owner={project.owner}
-              likes={project.likes}
-              comments={project.comments}
-              isVideo={project.isVideo}
+    <div className="flex flex-col w-full h-screen bg-black">
+      {/* TikTok-style scrollable content */}
+      <div 
+        className="flex-1 overflow-y-auto snap-y snap-mandatory"
+        onScroll={handleScroll}
+      >
+        {projects.map((project, index) => (
+          <div 
+            key={project.id} 
+            className="w-full h-screen snap-start snap-always relative"
+          >
+            <VerticalVideoCard
+              project={project}
+              isActive={index === activeIndex}
             />
-          ))}
-        </div>
-        
-        {/* Load more */}
-        <div className="mt-12 text-center">
-          <Button variant="outline" className="px-8">
-            Load More
-          </Button>
-        </div>
+          </div>
+        ))}
       </div>
-    </Layout>
+
+      {/* Bottom navigation */}
+      <div className="absolute bottom-0 w-full bg-transparent flex justify-around items-center py-4">
+        <button className="flex flex-col items-center text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span className="text-xs mt-1">Home</span>
+        </button>
+        <button className="flex flex-col items-center text-white opacity-70">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span className="text-xs mt-1">Discover</span>
+        </button>
+        <button className="flex flex-col items-center text-white opacity-70">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="text-xs mt-1">Create</span>
+        </button>
+        <button className="flex flex-col items-center text-white opacity-70">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+          </svg>
+          <span className="text-xs mt-1">Activity</span>
+        </button>
+        <button className="flex flex-col items-center text-white opacity-70">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span className="text-xs mt-1">Profile</span>
+        </button>
+      </div>
+    </div>
   );
 };
 
