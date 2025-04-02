@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Home, Search, PlusCircle, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,7 +27,8 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-orunlink-purple">Orunlink</span>
+              <OrunlinkLogo size={32} showText={false} />
+              <span className="text-xl font-bold text-orunlink-purple ml-2">Orunlink</span>
             </Link>
           </div>
 

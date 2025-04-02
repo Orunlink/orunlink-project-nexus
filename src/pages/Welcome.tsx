@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 
 const Welcome = () => {
   return (
@@ -8,9 +9,12 @@ const Welcome = () => {
       <div className="flex-grow flex flex-col md:flex-row">
         {/* Left side - Welcome content */}
         <div className="w-full md:w-1/2 flex flex-col justify-center px-6 py-12 md:px-12 lg:px-24 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-            Welcome to <span className="text-orunlink-purple">Orunlink</span>
-          </h1>
+          <div className="flex items-center mb-4">
+            <OrunlinkLogo size={60} showText={false} />
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 ml-4">
+              Welcome to <span className="text-orunlink-purple">Orunlink</span>
+            </h1>
+          </div>
           <p className="text-lg text-gray-600 mb-8 max-w-lg">
             Connect with like-minded individuals, showcase your projects, and collaborate on exciting ventures.
           </p>
