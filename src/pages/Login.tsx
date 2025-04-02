@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Check if account is locked from localStorage
   useEffect(() => {
     const lockedUntil = localStorage.getItem("loginLockedUntil");
     if (lockedUntil) {
@@ -29,7 +27,6 @@ const Login = () => {
         setIsLocked(true);
         setLockTime(Math.ceil((lockTimeMs - Date.now()) / 1000));
         
-        // Set up countdown timer
         const interval = setInterval(() => {
           setLockTime(prev => {
             if (prev <= 1) {
@@ -48,14 +45,12 @@ const Login = () => {
       }
     }
     
-    // Load previous login attempts
     const attempts = localStorage.getItem("loginAttempts");
     if (attempts) {
       setLoginAttempts(parseInt(attempts, 10));
     }
   }, []);
 
-  // Sanitize input to prevent XSS attacks
   const sanitizeInput = (input: string): string => {
     return input.replace(/[<>&"']/g, (match) => {
       switch (match) {
@@ -69,7 +64,6 @@ const Login = () => {
     });
   };
 
-  // Email validation
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -78,16 +72,13 @@ const Login = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Clear previous errors
     setError("");
     
-    // Check if account is locked
     if (isLocked) {
       setError(`Too many failed attempts. Try again in ${lockTime} seconds.`);
       return;
     }
     
-    // Validate inputs
     if (!email.trim() || !password.trim()) {
       setError("Please enter both email and password");
       return;
@@ -98,16 +89,10 @@ const Login = () => {
       return;
     }
     
-    // Sanitize inputs
     const sanitizedEmail = sanitizeInput(email.trim());
     
-    // Mock login functionality
     if (sanitizedEmail && password) {
-      // In a real app, this would be an API call with proper error handling
-      
-      // Simulating successful login
       if (sanitizedEmail === "admin@example.com" && password === "password123") {
-        // Reset login attempts on success
         localStorage.removeItem("loginAttempts");
         setLoginAttempts(0);
         
@@ -116,29 +101,24 @@ const Login = () => {
           description: "Welcome back to Orunlink!",
         });
         
-        // Set secure HTTP-only cookie (this is mocked - in a real app this would be set by the server)
         document.cookie = `sessionToken=dummy-token; path=/; max-age=86400; secure; samesite=strict`;
         
-        // Navigate to home page
         setTimeout(() => {
           navigate("/home");
         }, 500);
       } else {
-        // Handle failed login attempt
         const newAttempts = loginAttempts + 1;
         setLoginAttempts(newAttempts);
         localStorage.setItem("loginAttempts", newAttempts.toString());
         
-        // Lock account after 5 failed attempts
         if (newAttempts >= 5) {
-          const lockDuration = 30; // 30 seconds
+          const lockDuration = 30;
           const lockedUntil = Date.now() + (lockDuration * 1000);
           localStorage.setItem("loginLockedUntil", lockedUntil.toString());
           setIsLocked(true);
           setLockTime(lockDuration);
           setError(`Too many failed attempts. Account locked for ${lockDuration} seconds.`);
           
-          // Set up countdown timer
           const interval = setInterval(() => {
             setLockTime(prev => {
               if (prev <= 1) {
@@ -171,7 +151,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Login form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
@@ -187,7 +166,6 @@ const Login = () => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* CSRF token would be here in a real app */}
             <input type="hidden" name="csrf_token" value="dummy-csrf-token" />
             
             <div className="space-y-2">
@@ -291,7 +269,6 @@ const Login = () => {
         </div>
       </div>
       
-      {/* Right side - Image */}
       <div className="hidden lg:block lg:w-1/2 bg-orunlink-purple">
         <div className="h-full flex items-center justify-center p-12">
           <div className="max-w-lg">
