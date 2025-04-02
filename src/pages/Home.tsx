@@ -124,49 +124,47 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Bottom navigation with Lucide icons */}
-      <div className="fixed bottom-16 left-0 right-0 bg-black bg-opacity-50 py-3 z-20">
-        <div className="flex justify-around items-center">
-          <button 
-            className="flex flex-col items-center text-white"
-            onClick={() => navigateTo("/home")}
-          >
-            <HomeIcon className="w-6 h-6" />
-            <span className="text-xs mt-1">Home</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-            onClick={() => navigateTo("/explore")}
-          >
-            <Search className="w-6 h-6" />
-            <span className="text-xs mt-1">Explore</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-            onClick={() => navigateTo("/create")}
-          >
-            <Upload className="w-6 h-6" />
-            <span className="text-xs mt-1">Upload</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-            onClick={() => navigateTo("/project")}
-          >
-            <Handshake className="w-6 h-6" />
-            <span className="text-xs mt-1">Projects</span>
-          </button>
-          
-          <button 
-            className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-            onClick={() => navigateTo("/profile")}
-          >
-            <User className="w-6 h-6" />
-            <span className="text-xs mt-1">Profile</span>
-          </button>
-        </div>
+      {/* Bottom navigation with Lucide icons - moved to the purple bar */}
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-20 flex justify-around items-center">
+        <button 
+          className="flex flex-col items-center text-white"
+          onClick={() => navigateTo("/home")}
+        >
+          <HomeIcon className="w-6 h-6" />
+          <span className="text-xs mt-1">Home</span>
+        </button>
+        
+        <button 
+          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
+          onClick={() => navigateTo("/explore")}
+        >
+          <Search className="w-6 h-6" />
+          <span className="text-xs mt-1">Explore</span>
+        </button>
+        
+        <button 
+          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
+          onClick={() => navigateTo("/create")}
+        >
+          <Upload className="w-6 h-6" />
+          <span className="text-xs mt-1">Upload</span>
+        </button>
+        
+        <button 
+          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
+          onClick={() => navigateTo("/project")}
+        >
+          <Handshake className="w-6 h-6" />
+          <span className="text-xs mt-1">Projects</span>
+        </button>
+        
+        <button 
+          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
+          onClick={() => navigateTo("/profile")}
+        >
+          <User className="w-6 h-6" />
+          <span className="text-xs mt-1">Profile</span>
+        </button>
       </div>
     </div>
   );

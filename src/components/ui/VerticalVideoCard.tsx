@@ -39,7 +39,7 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* Top purple header - changed from green to purple and made fixed */}
+      {/* Top purple header - fixed */}
       <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 rounded-b-lg flex justify-end items-center px-4">
         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
           <img 
@@ -118,7 +118,7 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         </div>
       </div>
 
-      {/* Bottom user info */}
+      {/* Bottom user info - adjusted to account for new navigation position */}
       <div className="absolute bottom-24 left-4 right-20 z-10">
         <div className="flex items-center space-x-2 mb-2">
           <Avatar className="w-10 h-10 border-2 border-white">
@@ -133,8 +133,7 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         </p>
       </div>
 
-      {/* Bottom purple footer - changed from green to purple and made fixed */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10"></div>
+      {/* No separate bottom purple footer required as navigation is now in the footer */}
     </div>
   );
 };
