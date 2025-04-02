@@ -12,6 +12,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/project/:projectId" element={<ProjectDetail />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
