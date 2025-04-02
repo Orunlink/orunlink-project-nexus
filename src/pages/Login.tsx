@@ -1,33 +1,165 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockTime, setLockTime] = useState(0);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Check if account is locked from localStorage
+  useEffect(() => {
+    const lockedUntil = localStorage.getItem("loginLockedUntil");
+    if (lockedUntil) {
+      const lockTimeMs = parseInt(lockedUntil, 10);
+      if (lockTimeMs > Date.now()) {
+        setIsLocked(true);
+        setLockTime(Math.ceil((lockTimeMs - Date.now()) / 1000));
+        
+        // Set up countdown timer
+        const interval = setInterval(() => {
+          setLockTime(prev => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setIsLocked(false);
+              localStorage.removeItem("loginLockedUntil");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        
+        return () => clearInterval(interval);
+      } else {
+        localStorage.removeItem("loginLockedUntil");
+      }
+    }
+    
+    // Load previous login attempts
+    const attempts = localStorage.getItem("loginAttempts");
+    if (attempts) {
+      setLoginAttempts(parseInt(attempts, 10));
+    }
+  }, []);
+
+  // Sanitize input to prevent XSS attacks
+  const sanitizeInput = (input: string): string => {
+    return input.replace(/[<>&"']/g, (match) => {
+      switch (match) {
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '&': return '&amp;';
+        case '"': return '&quot;';
+        case "'": return '&#x27;';
+        default: return match;
+      }
+    });
+  };
+
+  // Email validation
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setError("");
+    
+    // Check if account is locked
+    if (isLocked) {
+      setError(`Too many failed attempts. Try again in ${lockTime} seconds.`);
+      return;
+    }
+    
+    // Validate inputs
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password");
+      return;
+    }
+    
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    
+    // Sanitize inputs
+    const sanitizedEmail = sanitizeInput(email.trim());
+    
     // Mock login functionality
-    if (email && password) {
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Orunlink!",
-      });
+    if (sanitizedEmail && password) {
+      // In a real app, this would be an API call with proper error handling
       
-      // Navigate to home page
-      setTimeout(() => {
-        navigate("/home");
-      }, 500);
+      // Simulating successful login
+      if (sanitizedEmail === "admin@example.com" && password === "password123") {
+        // Reset login attempts on success
+        localStorage.removeItem("loginAttempts");
+        setLoginAttempts(0);
+        
+        toast({
+          title: "Login successful",
+          description: "Welcome back to Orunlink!",
+        });
+        
+        // Set secure HTTP-only cookie (this is mocked - in a real app this would be set by the server)
+        document.cookie = `sessionToken=dummy-token; path=/; max-age=86400; secure; samesite=strict`;
+        
+        // Navigate to home page
+        setTimeout(() => {
+          navigate("/home");
+        }, 500);
+      } else {
+        // Handle failed login attempt
+        const newAttempts = loginAttempts + 1;
+        setLoginAttempts(newAttempts);
+        localStorage.setItem("loginAttempts", newAttempts.toString());
+        
+        // Lock account after 5 failed attempts
+        if (newAttempts >= 5) {
+          const lockDuration = 30; // 30 seconds
+          const lockedUntil = Date.now() + (lockDuration * 1000);
+          localStorage.setItem("loginLockedUntil", lockedUntil.toString());
+          setIsLocked(true);
+          setLockTime(lockDuration);
+          setError(`Too many failed attempts. Account locked for ${lockDuration} seconds.`);
+          
+          // Set up countdown timer
+          const interval = setInterval(() => {
+            setLockTime(prev => {
+              if (prev <= 1) {
+                clearInterval(interval);
+                setIsLocked(false);
+                localStorage.removeItem("loginLockedUntil");
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        } else {
+          setError(`Invalid email or password. ${5 - newAttempts} attempts remaining.`);
+        }
+        
+        toast({
+          title: "Login failed",
+          description: "Invalid email or password",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Login failed",
@@ -47,7 +179,17 @@ const Login = () => {
             <p className="mt-2 text-gray-600">Sign in to your Orunlink account</p>
           </div>
           
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* CSRF token would be here in a real app */}
+            <input type="hidden" name="csrf_token" value="dummy-csrf-token" />
+            
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -57,6 +199,8 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLocked}
+                autoComplete="username"
               />
             </div>
             
@@ -74,6 +218,8 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLocked}
+                autoComplete="current-password"
               />
             </div>
             
@@ -82,12 +228,17 @@ const Login = () => {
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                disabled={isLocked}
               />
               <Label htmlFor="remember" className="text-sm">Remember me for 30 days</Label>
             </div>
             
-            <Button type="submit" className="w-full bg-orunlink-purple hover:bg-orunlink-dark">
-              Sign in
+            <Button 
+              type="submit" 
+              className="w-full bg-orunlink-purple hover:bg-orunlink-dark"
+              disabled={isLocked}
+            >
+              {isLocked ? `Locked (${lockTime}s)` : "Sign in"}
             </Button>
           </form>
           
