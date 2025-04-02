@@ -91,6 +91,8 @@ const Login = () => {
     
     const sanitizedEmail = sanitizeInput(email.trim());
     
+    console.log("Login attempt with:", sanitizedEmail);
+    
     if (sanitizedEmail && password) {
       if (sanitizedEmail === "admin@example.com" && password === "password123") {
         localStorage.removeItem("loginAttempts");
@@ -107,6 +109,11 @@ const Login = () => {
           navigate("/home");
         }, 500);
       } else {
+        toast({
+          title: "Login credentials",
+          description: "Use admin@example.com / password123 for this demo",
+        });
+        
         const newAttempts = loginAttempts + 1;
         setLoginAttempts(newAttempts);
         localStorage.setItem("loginAttempts", newAttempts.toString());
@@ -131,14 +138,8 @@ const Login = () => {
             });
           }, 1000);
         } else {
-          setError(`Invalid email or password. ${5 - newAttempts} attempts remaining.`);
+          setError(`Invalid email or password. Use admin@example.com and password123 for this demo. ${5 - newAttempts} attempts remaining.`);
         }
-        
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password",
-          variant: "destructive",
-        });
       }
     } else {
       toast({
