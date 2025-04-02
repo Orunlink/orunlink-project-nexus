@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,6 @@ const ForgotPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const { toast } = useToast();
 
-  // Sanitize input to prevent XSS attacks
   const sanitizeInput = (input: string): string => {
     return input.replace(/[<>&"']/g, (match) => {
       switch (match) {
@@ -38,13 +36,11 @@ const ForgotPassword = () => {
     });
   };
 
-  // Email validation
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  // Password validation
   const validatePassword = (password: string): boolean => {
     return password.length >= 8;
   };
@@ -54,7 +50,6 @@ const ForgotPassword = () => {
     setIsLoading(true);
     setError("");
 
-    // Validate and sanitize inputs
     const sanitizedEmail = sanitizeInput(email.trim());
 
     if (!sanitizedEmail) {
@@ -69,15 +64,12 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Mock API call to send reset link
-    // In a real app, this would call your backend API
     setTimeout(() => {
       setIsLoading(false);
       toast({
         title: "Reset link sent",
         description: "Check your email for password reset instructions.",
       });
-      // Move to OTP step
       setStep("otp");
     }, 1500);
   };
@@ -93,11 +85,8 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Mock OTP verification
-    // In a real app, this would verify the OTP with your backend
     setTimeout(() => {
       setIsLoading(false);
-      // Move to password reset step
       setStep("newPassword");
     }, 1000);
   };
@@ -119,22 +108,18 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Mock password reset
-    // In a real app, this would reset the password in your backend
     setTimeout(() => {
       setIsLoading(false);
       toast({
         title: "Password reset successfully",
         description: "You can now sign in with your new password.",
       });
-      // Redirect to login
       window.location.href = "/login";
     }, 1500);
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header with logo */}
       <header className="p-4 bg-white">
         <div className="max-w-md mx-auto">
           <Link to="/" className="text-2xl font-bold text-orunlink-purple">
@@ -143,7 +128,6 @@ const ForgotPassword = () => {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="flex-grow flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
@@ -310,7 +294,6 @@ const ForgotPassword = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="p-6 text-center text-gray-500 text-sm">
         <p>© {new Date().getFullYear()} Orunlink. All rights reserved.</p>
       </footer>
