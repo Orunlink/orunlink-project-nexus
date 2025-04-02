@@ -1,5 +1,6 @@
+
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const sanitizeInput = (input: string): string => {
     return input.replace(/[<>&"']/g, (match) => {
@@ -114,7 +116,7 @@ const ForgotPassword = () => {
         title: "Password reset successfully",
         description: "You can now sign in with your new password.",
       });
-      window.location.href = "/login";
+      navigate("/login");
     }, 1500);
   };
 
@@ -122,9 +124,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex flex-col">
       <header className="p-4 bg-white">
         <div className="max-w-md mx-auto">
-          <Link to="/" className="text-2xl font-bold text-orunlink-purple">
-            Orunlink
-          </Link>
+          <h1 className="text-2xl font-bold text-orunlink-purple">Orunlink</h1>
         </div>
       </header>
 
@@ -192,13 +192,14 @@ const ForgotPassword = () => {
               </Button>
 
               <div className="text-center mt-4">
-                <Link
-                  to="/login"
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
                   className="inline-flex items-center text-sm text-orunlink-purple hover:underline"
                 >
                   <ArrowLeft className="mr-1 h-4 w-4" />
                   Back to sign in
-                </Link>
+                </button>
               </div>
             </form>
           )}
