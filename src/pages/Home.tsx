@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "@/components/ui/avatar";
@@ -124,7 +125,7 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Bottom navigation with Lucide icons - moved to the purple bar */}
+      {/* Bottom navigation with Lucide icons - with squared corners */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-20 flex justify-around items-center">
         <button 
           className="flex flex-col items-center text-white"

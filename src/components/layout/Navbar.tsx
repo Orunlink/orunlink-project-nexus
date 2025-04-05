@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, Search, PlusCircle, Bell, User } from "lucide-react";
+import { Menu, X, Home, Search, PlusCircle, Bell, User, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 
@@ -10,7 +10,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const navLinks = [
-    { name: "Home", path: "/", icon: <Home className="w-6 h-6" /> },
+    { name: "Home", path: "/home", icon: <Home className="w-6 h-6" /> },
     { name: "Explore", path: "/explore", icon: <Search className="w-6 h-6" /> },
     { name: "Create", path: "/create", icon: <PlusCircle className="w-6 h-6" /> },
     { name: "Notifications", path: "/notifications", icon: <Bell className="w-6 h-6" /> },
@@ -26,7 +26,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
+            <Link to="/home" className="flex-shrink-0 flex items-center">
               <OrunlinkLogo size={32} showText={false} />
               <span className="text-xl font-bold text-orunlink-purple ml-2">Orunlink</span>
             </Link>
@@ -47,6 +47,15 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Add inbox button for messages */}
+            <Link 
+              to="/messages" 
+              className="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-orunlink-purple"
+            >
+              <Inbox className="w-5 h-5" />
+            </Link>
+            
             <Button variant="default" className="bg-orunlink-purple hover:bg-orunlink-dark ml-4">
               Sign In
             </Button>
@@ -54,6 +63,14 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center">
+            {/* Add inbox button for mobile */}
+            <Link 
+              to="/messages" 
+              className="mr-4 text-gray-500 hover:text-orunlink-purple"
+            >
+              <Inbox className="w-6 h-6" />
+            </Link>
+            
             <button
               onClick={toggleMenu}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
@@ -99,7 +116,7 @@ const Navbar = () => {
       )}
 
       {/* Bottom Mobile Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#8B5CF6] z-50">
         <div className="grid grid-cols-5 gap-1">
           {navLinks.map((link) => (
             <Link
@@ -107,8 +124,8 @@ const Navbar = () => {
               to={link.path}
               className={`flex flex-col items-center justify-center py-2 ${
                 location.pathname === link.path
-                  ? "text-orunlink-purple"
-                  : "text-gray-500 hover:text-orunlink-purple"
+                  ? "text-white"
+                  : "text-white/70 hover:text-white"
               }`}
             >
               {link.icon}
