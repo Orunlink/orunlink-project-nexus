@@ -39,17 +39,6 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* Top purple header - fixed */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 rounded-b-lg flex justify-end items-center px-4">
-        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-          <img 
-            src="/lovable-uploads/f83e4b3e-e786-4333-90ed-d750a17c2dd1.png" 
-            alt="Logo" 
-            className="w-6 h-6 object-contain opacity-0" // Using the placeholder image with opacity 0 to match the design
-          />
-        </div>
-      </div>
-
       {/* Media content */}
       <div className="absolute inset-0">
         {project.isVideo ? (
@@ -132,8 +121,6 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
           <span className="font-medium">#creative</span> <span className="font-medium">#mind</span> <span className="font-medium">#love</span>
         </p>
       </div>
-
-      {/* No separate bottom purple footer required as navigation is now in the footer */}
     </div>
   );
 };

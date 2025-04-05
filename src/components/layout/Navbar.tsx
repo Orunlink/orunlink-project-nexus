@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, Search, PlusCircle, Bell, User, Inbox } from "lucide-react";
+import { Menu, X, Home, Search, PlusCircle, Bell, User, Inbox, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 
@@ -13,6 +13,7 @@ const Navbar = () => {
     { name: "Home", path: "/home", icon: <Home className="w-6 h-6" /> },
     { name: "Explore", path: "/explore", icon: <Search className="w-6 h-6" /> },
     { name: "Create", path: "/create", icon: <PlusCircle className="w-6 h-6" /> },
+    { name: "Projects", path: "/projects", icon: <BookOpen className="w-6 h-6" /> },
     { name: "Notifications", path: "/notifications", icon: <Bell className="w-6 h-6" /> },
     { name: "Profile", path: "/profile", icon: <User className="w-6 h-6" /> },
   ];
@@ -51,9 +52,16 @@ const Navbar = () => {
             {/* Add inbox button for messages */}
             <Link 
               to="/messages" 
-              className="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-orunlink-purple"
+              className={`px-3 py-2 rounded-md text-sm font-medium ${
+                location.pathname === "/messages"
+                  ? "text-orunlink-purple"
+                  : "text-gray-500 hover:text-orunlink-purple"
+              }`}
             >
-              <Inbox className="w-5 h-5" />
+              <div className="flex items-center">
+                <Inbox className="w-5 h-5" />
+                <span className="ml-1">Messages</span>
+              </div>
             </Link>
             
             <Button variant="default" className="bg-orunlink-purple hover:bg-orunlink-dark ml-4">
@@ -114,26 +122,6 @@ const Navbar = () => {
           </div>
         </div>
       )}
-
-      {/* Bottom Mobile Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#8B5CF6] z-50">
-        <div className="grid grid-cols-5 gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className={`flex flex-col items-center justify-center py-2 ${
-                location.pathname === link.path
-                  ? "text-white"
-                  : "text-white/70 hover:text-white"
-              }`}
-            >
-              {link.icon}
-              <span className="text-xs mt-1">{link.name}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
     </nav>
   );
 };

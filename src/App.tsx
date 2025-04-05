@@ -13,6 +13,10 @@ import Profile from "./pages/Profile";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Notifications from "./pages/Notifications";
+import Messages from "./pages/Messages";
+import Explore from "./pages/Explore";
+import Projects from "./pages/Projects";
+import Create from "./pages/Create";
 
 const queryClient = new QueryClient();
 
@@ -30,8 +34,10 @@ const App = () => (
           <Route path="/project/:projectId" element={<ProjectDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
-          <Route path="/messages" element={<NotFound />} /> {/* Placeholder for messages page */}
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/create" element={<Create />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

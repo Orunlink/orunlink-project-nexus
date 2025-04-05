@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "@/components/ui/avatar";
-import { Home as HomeIcon, Search, Upload, Handshake, User } from "lucide-react";
+import { Home as HomeIcon, Search, Upload, User, Inbox, BookOpen } from "lucide-react";
 import VerticalVideoCard from "@/components/ui/VerticalVideoCard";
 
 // Mock data
@@ -125,7 +125,27 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Bottom navigation with Lucide icons - with squared corners */}
+      {/* Top purple header - without rounded corners */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 flex items-center px-4">
+        <div className="flex-1 flex justify-start">
+          <div className="flex items-center">
+            <img 
+              src="/lovable-uploads/f83e4b3e-e786-4333-90ed-d750a17c2dd1.png" 
+              alt="Logo" 
+              className="w-8 h-8 object-contain" 
+            />
+          </div>
+        </div>
+        <div className="flex-1 flex justify-end">
+          <Link to="/messages">
+            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white">
+              <Inbox className="w-6 h-6" />
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Bottom navigation - without rounded corners */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-20 flex justify-around items-center">
         <button 
           className="flex flex-col items-center text-white"
@@ -153,9 +173,9 @@ const Home = () => {
         
         <button 
           className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-          onClick={() => navigateTo("/project")}
+          onClick={() => navigateTo("/projects")}
         >
-          <Handshake className="w-6 h-6" />
+          <BookOpen className="w-6 h-6" />
           <span className="text-xs mt-1">Projects</span>
         </button>
         
