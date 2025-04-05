@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Avatar } from "@/components/ui/avatar";
 import { Home as HomeIcon, Search, Upload, User, Inbox, BookOpen } from "lucide-react";
 import VerticalVideoCard from "@/components/ui/VerticalVideoCard";

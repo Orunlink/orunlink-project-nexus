@@ -1,11 +1,25 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectCard from "@/components/ui/ProjectCard";
 import Navbar from "@/components/layout/Navbar";
 
+// Updated type definition for projects
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  owner: {
+    name: string;
+    avatar: string;
+  };
+  likes: number;
+  comments: number;
+  isVideo?: boolean;
+}
+
 // Mock data
-const myProjects = [
+const myProjects: Project[] = [
   {
     id: "101",
     title: "My Personal Portfolio Website",
@@ -33,7 +47,7 @@ const myProjects = [
   },
 ];
 
-const collaborationProjects = [
+const collaborationProjects: Project[] = [
   {
     id: "201",
     title: "Financial Dashboard",
@@ -73,7 +87,7 @@ const collaborationProjects = [
   },
 ];
 
-const savedProjects = [
+const savedProjects: Project[] = [
   {
     id: "301",
     title: "AI Image Generator",
