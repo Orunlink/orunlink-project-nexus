@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ProjectCard from "@/components/ui/ProjectCard";
-import Navbar from "@/components/layout/Navbar";
+import Layout from "@/components/layout/Layout";
 
 // Mock data
 const mockProjects = [
@@ -104,8 +103,7 @@ const Explore = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <Navbar />
+    <Layout hideNavbar={true} hideFooter={true}>
       <div className="max-w-7xl mx-auto p-4 pt-20">
         <h1 className="text-2xl font-bold mb-6">Explore Projects</h1>
         
@@ -144,7 +142,7 @@ const Explore = () => {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 };
 

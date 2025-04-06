@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
-import { Avatar } from "@/components/ui/avatar";
-import { Home as HomeIcon, Search, Upload, User, Inbox, BookOpen } from "lucide-react";
+import Header from "@/components/layout/Header";
+import BottomNav from "@/components/layout/BottomNav";
 import VerticalVideoCard from "@/components/ui/VerticalVideoCard";
-import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const mockProjects = [
   {
@@ -88,7 +85,6 @@ const Home = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState(mockProjects);
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
@@ -99,10 +95,6 @@ const Home = () => {
     if (newIndex !== activeIndex && newIndex < projects.length) {
       setActiveIndex(newIndex);
     }
-  };
-
-  const navigateTo = (path: string) => {
-    navigate(path);
   };
 
   return (
@@ -124,62 +116,8 @@ const Home = () => {
         ))}
       </div>
 
-      <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 flex items-center px-4">
-        <div className="flex-1 flex justify-start">
-          <div className="flex items-center">
-            <OrunlinkLogo size={isMobile ? 28 : 32} showText={false} color="white" />
-          </div>
-        </div>
-        <div className="flex-1 flex justify-end">
-          <Link to="/messages">
-            <button className="w-10 h-10 rounded-full flex items-center justify-center text-white">
-              <Inbox className="w-6 h-6" />
-            </button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-20 flex justify-around items-center">
-        <button 
-          className="flex flex-col items-center text-white"
-          onClick={() => navigateTo("/home")}
-        >
-          <HomeIcon className="w-5 h-5" />
-          <span className="text-xs mt-1">{!isMobile && "Home"}</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-          onClick={() => navigateTo("/explore")}
-        >
-          <Search className="w-5 h-5" />
-          <span className="text-xs mt-1">{!isMobile && "Explore"}</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-          onClick={() => navigateTo("/create")}
-        >
-          <Upload className="w-5 h-5" />
-          <span className="text-xs mt-1">{!isMobile && "Upload"}</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-          onClick={() => navigateTo("/projects")}
-        >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-xs mt-1">{!isMobile && "Projects"}</span>
-        </button>
-        
-        <button 
-          className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
-          onClick={() => navigateTo("/profile")}
-        >
-          <User className="w-5 h-5" />
-          <span className="text-xs mt-1">{!isMobile && "Profile"}</span>
-        </button>
-      </div>
+      <Header />
+      <BottomNav />
     </div>
   );
 };

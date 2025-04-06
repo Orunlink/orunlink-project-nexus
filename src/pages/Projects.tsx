@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProjectCard from "@/components/ui/ProjectCard";
-import Navbar from "@/components/layout/Navbar";
+import Layout from "@/components/layout/Layout";
 
-// Updated type definition for projects
 interface Project {
   id: string;
   title: string;
@@ -18,7 +17,6 @@ interface Project {
   isVideo?: boolean;
 }
 
-// Mock data
 const myProjects: Project[] = [
   {
     id: "101",
@@ -118,8 +116,7 @@ const Projects = () => {
   const [activeTab, setActiveTab] = useState("my-projects");
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <Navbar />
+    <Layout hideNavbar={true} hideFooter={true}>
       <div className="max-w-7xl mx-auto p-4 pt-20">
         <h1 className="text-2xl font-bold mb-6">Projects</h1>
         
@@ -203,7 +200,7 @@ const Projects = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </Layout>
   );
 };
 

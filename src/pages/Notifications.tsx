@@ -122,8 +122,8 @@ const Notifications = () => {
   };
 
   return (
-    <Layout>
-      <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6">
+    <Layout hideNavbar={true} hideFooter={true}>
+      <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6 pt-20">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Notifications</h1>
