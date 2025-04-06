@@ -5,8 +5,8 @@ import { Avatar } from "@/components/ui/avatar";
 import { Home as HomeIcon, Search, Upload, User, Inbox, BookOpen } from "lucide-react";
 import VerticalVideoCard from "@/components/ui/VerticalVideoCard";
 import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-// Mock data
 const mockProjects = [
   {
     id: "1",
@@ -88,8 +88,8 @@ const Home = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState(mockProjects);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
-  // Handle scroll to change active project
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollPosition = container.scrollTop;
@@ -101,14 +101,12 @@ const Home = () => {
     }
   };
 
-  // Navigation handlers
   const navigateTo = (path: string) => {
     navigate(path);
   };
 
   return (
     <div className="flex flex-col w-full h-screen bg-black">
-      {/* TikTok-style scrollable content */}
       <div 
         className="flex-1 overflow-y-auto snap-y snap-mandatory"
         onScroll={handleScroll}
@@ -126,11 +124,10 @@ const Home = () => {
         ))}
       </div>
 
-      {/* Top purple header - without rounded corners */}
       <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 flex items-center px-4">
         <div className="flex-1 flex justify-start">
           <div className="flex items-center">
-            <OrunlinkLogo size={32} showText={false} color="white" />
+            <OrunlinkLogo size={isMobile ? 28 : 32} showText={false} color="white" />
           </div>
         </div>
         <div className="flex-1 flex justify-end">
@@ -142,46 +139,45 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Bottom navigation - without rounded corners */}
       <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-20 flex justify-around items-center">
         <button 
           className="flex flex-col items-center text-white"
           onClick={() => navigateTo("/home")}
         >
-          <HomeIcon className="w-6 h-6" />
-          <span className="text-xs mt-1">Home</span>
+          <HomeIcon className="w-5 h-5" />
+          <span className="text-xs mt-1">{!isMobile && "Home"}</span>
         </button>
         
         <button 
           className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
           onClick={() => navigateTo("/explore")}
         >
-          <Search className="w-6 h-6" />
-          <span className="text-xs mt-1">Explore</span>
+          <Search className="w-5 h-5" />
+          <span className="text-xs mt-1">{!isMobile && "Explore"}</span>
         </button>
         
         <button 
           className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
           onClick={() => navigateTo("/create")}
         >
-          <Upload className="w-6 h-6" />
-          <span className="text-xs mt-1">Upload</span>
+          <Upload className="w-5 h-5" />
+          <span className="text-xs mt-1">{!isMobile && "Upload"}</span>
         </button>
         
         <button 
           className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
           onClick={() => navigateTo("/projects")}
         >
-          <BookOpen className="w-6 h-6" />
-          <span className="text-xs mt-1">Projects</span>
+          <BookOpen className="w-5 h-5" />
+          <span className="text-xs mt-1">{!isMobile && "Projects"}</span>
         </button>
         
         <button 
           className="flex flex-col items-center text-white opacity-70 hover:opacity-100"
           onClick={() => navigateTo("/profile")}
         >
-          <User className="w-6 h-6" />
-          <span className="text-xs mt-1">Profile</span>
+          <User className="w-5 h-5" />
+          <span className="text-xs mt-1">{!isMobile && "Profile"}</span>
         </button>
       </div>
     </div>
