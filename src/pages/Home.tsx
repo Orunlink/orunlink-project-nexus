@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { Avatar } from "@/components/ui/avatar";
 import { Home as HomeIcon, Search, Upload, User, Inbox, BookOpen } from "lucide-react";
 import VerticalVideoCard from "@/components/ui/VerticalVideoCard";
+import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 
 // Mock data
 const mockProjects = [
@@ -130,11 +130,7 @@ const Home = () => {
       <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 flex items-center px-4">
         <div className="flex-1 flex justify-start">
           <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/f83e4b3e-e786-4333-90ed-d750a17c2dd1.png" 
-              alt="Logo" 
-              className="w-8 h-8 object-contain" 
-            />
+            <OrunlinkLogo size={32} showText={false} color="white" />
           </div>
         </div>
         <div className="flex-1 flex justify-end">
