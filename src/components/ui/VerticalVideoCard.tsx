@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Heart, MessageSquare, Share2, Bookmark, Handshake } from "lucide-react";
+import { Heart, MessageSquare, Share2, Bookmark, Handshake, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { shareProject } from "@/services/projectService";
