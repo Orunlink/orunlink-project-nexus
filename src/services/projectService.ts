@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Comment {
@@ -11,6 +10,9 @@ export interface Comment {
     name: string;
     avatar: string;
   };
+  likes?: number;
+  isLiked?: boolean;
+  replies_count?: number;
 }
 
 export interface JoinRequest {

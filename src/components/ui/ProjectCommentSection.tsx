@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { User, Send, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -93,7 +92,7 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
       if (comment.id === commentId) {
         return {
           ...comment,
-          likes: (comment.likes || 0) + 1,
+          likes: ((comment.likes || 0) + 1),
           isLiked: true
         };
       }
