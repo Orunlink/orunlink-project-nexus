@@ -1,43 +1,90 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-
-interface Comment {
-  id: string;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  content: string;
-  timestamp: string;
-}
+import { useToast } from "@/hooks/use-toast";
+import { addComment, getCommentsByProjectId, Comment } from "@/services/projectService";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProjectCommentSectionProps {
-  comments: Comment[];
+  projectId: string;
 }
 
-const ProjectCommentSection = ({ comments: initialComments }: ProjectCommentSectionProps) => {
-  const [comments, setComments] = useState<Comment[]>(initialComments);
+const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
 
-  const handleSubmitComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
-    const comment: Comment = {
-      id: `comment-${Date.now()}`,
-      author: {
-        name: "You",
-        avatar: "",
-      },
-      content: newComment,
-      timestamp: "Just now",
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
     };
 
-    setComments([comment, ...comments]);
-    setNewComment("");
+    getUser();
+
+    const authListener = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      authListener.data.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Fetch comments
+  useEffect(() => {
+    const fetchComments = async () => {
+      const commentsData = await getCommentsByProjectId(projectId);
+      setComments(commentsData);
+    };
+
+    fetchComments();
+
+    // Set up realtime subscription for new comments
+    const channel = supabase
+      .channel('public:comments')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'comments', filter: `project_id=eq.${projectId}` },
+        (payload) => {
+          fetchComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
+
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !user) return;
+
+    try {
+      setIsLoading(true);
+      const result = await addComment(projectId, user.id, newComment);
+      if (result) {
+        setNewComment("");
+        toast({
+          title: "Comment added",
+          description: "Your comment has been posted successfully.",
+        });
+      }
+    } catch (error) {
+      console.error("Error posting comment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post comment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,19 +98,20 @@ const ProjectCommentSection = ({ comments: initialComments }: ProjectCommentSect
           </div>
           <div className="flex-grow">
             <Textarea
-              placeholder="Add to the discussion..."
+              placeholder={user ? "Add to the discussion..." : "Sign in to comment"}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               className="w-full min-h-[80px] resize-none"
+              disabled={!user}
             />
             <div className="mt-2 flex justify-end">
               <Button 
                 type="submit" 
                 className="bg-orunlink-purple hover:bg-orunlink-dark"
-                disabled={!newComment.trim()}
+                disabled={!newComment.trim() || !user || isLoading}
               >
                 <Send className="w-4 h-4 mr-2" />
-                Post
+                {isLoading ? "Posting..." : "Post"}
               </Button>
             </div>
           </div>
@@ -75,7 +123,7 @@ const ProjectCommentSection = ({ comments: initialComments }: ProjectCommentSect
           comments.map((comment) => (
             <div key={comment.id} className="flex space-x-3 py-3 border-t border-gray-100">
               <div className="shrink-0">
-                {comment.author.avatar ? (
+                {comment.author?.avatar ? (
                   <img
                     src={comment.author.avatar}
                     alt={comment.author.name}
@@ -89,8 +137,10 @@ const ProjectCommentSection = ({ comments: initialComments }: ProjectCommentSect
               </div>
               <div>
                 <div className="flex items-center">
-                  <span className="font-medium">{comment.author.name}</span>
-                  <span className="text-gray-500 text-sm ml-2">{comment.timestamp}</span>
+                  <span className="font-medium">{comment.author?.name || "Anonymous User"}</span>
+                  <span className="text-gray-500 text-sm ml-2">
+                    {new Date(comment.created_at).toLocaleDateString()}
+                  </span>
                 </div>
                 <p className="text-gray-700 mt-1">{comment.content}</p>
               </div>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import ProjectCommentSection from "@/components/ui/ProjectCommentSection";
@@ -14,6 +15,8 @@ import {
   Tag,
   AlertCircle
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { createJoinRequest, shareProject } from "@/services/projectService";
 
 // Mock project data
 const mockProject = {
@@ -55,44 +58,34 @@ const mockProject = {
   isAcceptingCollaborators: true,
 };
 
-// Mock comments
-const mockComments = [
-  {
-    id: "comment1",
-    author: {
-      name: "Sarah Miller",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    content: "Love the design! The dark mode implementation is especially well done.",
-    timestamp: "2 days ago",
-  },
-  {
-    id: "comment2",
-    author: {
-      name: "David Chen",
-      avatar: "https://randomuser.me/api/portraits/men/67.jpg",
-    },
-    content: "Great work on the UI elements. Would you be interested in collaborating on a similar project I'm working on?",
-    timestamp: "1 day ago",
-  },
-  {
-    id: "comment3",
-    author: {
-      name: "Emma Taylor",
-      avatar: "https://randomuser.me/api/portraits/women/22.jpg",
-    },
-    content: "The color scheme really stands out. What was your inspiration for this palette?",
-    timestamp: "12 hours ago",
-  },
-];
-
 const ProjectDetail = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(mockProject.likes);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [user, setUser] = useState<any>(null);
+  const [joinRequestSent, setJoinRequestSent] = useState(false);
+  const [isJoinRequestLoading, setIsJoinRequestLoading] = useState(false);
   const { toast } = useToast();
+
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+
+    getUser();
+
+    const authListener = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => {
+      authListener.data.subscription.unsubscribe();
+    };
+  }, []);
 
   // In a real app, we would fetch the project details based on projectId
   const project = mockProject;
@@ -110,11 +103,59 @@ const ProjectDetail = () => {
     });
   };
 
-  const handleRequestJoin = () => {
-    toast({
-      title: "Request sent",
-      description: "Your request to join this project has been sent to the owner",
-    });
+  const handleRequestJoin = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to request to join this project",
+      });
+      return;
+    }
+
+    setIsJoinRequestLoading(true);
+    
+    try {
+      const result = await createJoinRequest(
+        project.id,
+        user.id,
+        project.owner.id
+      );
+      
+      if (result) {
+        setJoinRequestSent(true);
+        toast({
+          title: "Request sent",
+          description: "Your request to join this project has been sent to the owner",
+        });
+      }
+    } catch (error) {
+      console.error("Error sending join request:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send join request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsJoinRequestLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const projectUrl = window.location.href;
+    const success = await shareProject(projectUrl, "project");
+    
+    if (success) {
+      toast({
+        title: "Project shared",
+        description: navigator.share ? "Project shared successfully" : "Project link copied to clipboard",
+      });
+    } else {
+      toast({
+        title: "Share failed",
+        description: "Unable to share this project. Try copying the URL manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -168,8 +209,12 @@ const ProjectDetail = () => {
                       <div className="text-sm text-gray-500">{project.owner.title}</div>
                     </div>
                   </div>
-                  <Button onClick={handleRequestJoin} className="bg-orunlink-purple hover:bg-orunlink-dark">
-                    Request to Join
+                  <Button 
+                    onClick={handleRequestJoin} 
+                    className="bg-orunlink-purple hover:bg-orunlink-dark"
+                    disabled={joinRequestSent || isJoinRequestLoading || (user && user.id === project.owner.id)}
+                  >
+                    {isJoinRequestLoading ? "Sending..." : joinRequestSent ? "Request Sent" : "Request to Join"}
                   </Button>
                 </div>
 
@@ -200,7 +245,10 @@ const ProjectDetail = () => {
                       <MessageSquare className="w-5 h-5 mr-1" />
                       <span>{project.comments}</span>
                     </button>
-                    <button className="flex items-center text-gray-500 hover:text-gray-700">
+                    <button 
+                      onClick={handleShare}
+                      className="flex items-center text-gray-500 hover:text-gray-700"
+                    >
                       <Share2 className="w-5 h-5 mr-1" />
                       <span>Share</span>
                     </button>
@@ -217,7 +265,7 @@ const ProjectDetail = () => {
             </div>
 
             {/* Comments section */}
-            <ProjectCommentSection comments={mockComments} />
+            <ProjectCommentSection projectId={projectId || "1"} />
           </div>
 
           {/* Right column - Sidebar */}
