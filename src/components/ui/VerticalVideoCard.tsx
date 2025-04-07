@@ -84,30 +84,30 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         )}
       </div>
 
-      {/* Side action buttons - Made smaller */}
-      <div className="absolute right-4 bottom-32 flex flex-col space-y-4 items-center z-10">
+      {/* Side action buttons - Made even smaller */}
+      <div className="absolute right-3 bottom-32 flex flex-col space-y-3 items-center z-10">
         <div className="flex flex-col items-center">
           <button
             onClick={handleLike}
-            className="w-8 h-8 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
+            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
           >
             <Heart
-              className={`w-4 h-4 ${isLiked ? "fill-red-500 text-red-500" : "text-white"}`}
+              className={`w-3 h-3 ${isLiked ? "fill-red-500 text-red-500" : "text-white"}`}
             />
           </button>
           <span className="text-white text-xs">{currentLikes}</span>
         </div>
         
         <div className="flex flex-col items-center">
-          <button className="w-8 h-8 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1">
-            <MessageSquare className="w-4 h-4 text-white" />
+          <button className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1">
+            <MessageSquare className="w-3 h-3 text-white" />
           </button>
           <span className="text-white text-xs">{project.comments}</span>
         </div>
         
         <div className="flex flex-col items-center">
-          <button className="w-8 h-8 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1">
-            <Handshake className="w-4 h-4 text-white" />
+          <button className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1">
+            <Handshake className="w-3 h-3 text-white" />
           </button>
           <span className="text-white text-xs">Join</span>
         </div>
@@ -115,9 +115,9 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         <div className="flex flex-col items-center">
           <button 
             onClick={handleShare}
-            className="w-8 h-8 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
+            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
           >
-            <Share2 className="w-4 h-4 text-white" />
+            <Share2 className="w-3 h-3 text-white" />
           </button>
           <span className="text-white text-xs">Share</span>
         </div>
@@ -125,10 +125,10 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         <div className="flex flex-col items-center">
           <button
             onClick={handleSave}
-            className="w-8 h-8 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
+            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
           >
             <Bookmark
-              className={`w-4 h-4 ${isSaved ? "fill-white" : ""} text-white`}
+              className={`w-3 h-3 ${isSaved ? "fill-white" : ""} text-white`}
             />
           </button>
           <span className="text-white text-xs">Save</span>
@@ -138,12 +138,12 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
       {/* Bottom user info - adjusted to account for new navigation position */}
       <div className="absolute bottom-24 left-4 right-20 z-10">
         <div className="flex items-center space-x-2 mb-2">
-          <Avatar className="w-10 h-10 border-2 border-white">
+          <Avatar className="w-8 h-8 border-2 border-white">
             <img src={project.owner.avatar} alt={project.owner.name} />
           </Avatar>
-          <span className="text-white font-medium">{project.owner.name}</span>
+          <span className="text-white font-medium text-sm">{project.owner.name}</span>
         </div>
-        <p className="text-white text-sm mb-1">{project.title}</p>
+        <p className="text-white text-xs mb-1">{project.title}</p>
         <p className="text-white text-xs opacity-80">{project.description}</p>
         <p className="text-white text-xs mt-2">
           <span className="font-medium">#creative</span> <span className="font-medium">#mind</span> <span className="font-medium">#love</span>
