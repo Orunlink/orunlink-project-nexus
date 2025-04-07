@@ -75,7 +75,11 @@ export const createJoinRequest = async (projectId: string, requesterId: string, 
     return null;
   }
 
-  return data;
+  // Cast the status to the expected type since we know it's "pending" by default
+  return {
+    ...data,
+    status: data.status as "pending" | "accepted" | "rejected"
+  };
 };
 
 export const getPendingJoinRequestsForOwner = async (ownerId: string): Promise<JoinRequest[]> => {
@@ -90,7 +94,11 @@ export const getPendingJoinRequestsForOwner = async (ownerId: string): Promise<J
     return [];
   }
 
-  return data || [];
+  // Cast the status for each item in the array
+  return data?.map(item => ({
+    ...item,
+    status: item.status as "pending" | "accepted" | "rejected"
+  })) || [];
 };
 
 export const updateJoinRequestStatus = async (requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> => {
@@ -106,7 +114,11 @@ export const updateJoinRequestStatus = async (requestId: string, status: "accept
     return null;
   }
 
-  return data;
+  // Cast the status to the expected type
+  return {
+    ...data,
+    status: data.status as "pending" | "accepted" | "rejected"
+  };
 };
 
 // Share project
