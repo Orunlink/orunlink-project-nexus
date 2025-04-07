@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Heart, MessageSquare, Share2, Bookmark, Handshake } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { shareProject } from "@/services/projectService";
+import { useNavigate } from "react-router-dom";
+import ProjectCommentSection from "./ProjectCommentSection";
 
 interface Project {
   id: string;
@@ -28,8 +29,10 @@ interface VerticalVideoCardProps {
 const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(project.likes);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -45,21 +48,38 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
   };
 
   const handleShare = async () => {
-    const projectUrl = `${window.location.origin}/project/${project.id}`;
-    const success = await shareProject(projectUrl, "project");
-    
-    if (success) {
-      toast({
-        title: "Project shared",
-        description: navigator.share ? "Project shared successfully" : "Project link copied to clipboard",
-      });
-    } else {
+    try {
+      const projectUrl = `${window.location.origin}/project/${project.id}`;
+      const success = await shareProject(projectUrl, "project");
+      
+      if (success) {
+        toast({
+          title: "Project shared",
+          description: navigator.share ? "Project shared successfully" : "Project link copied to clipboard",
+        });
+      } else {
+        toast({
+          title: "Share failed",
+          description: "Unable to share this project. Try copying the URL manually.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error sharing project:", error);
       toast({
         title: "Share failed",
         description: "Unable to share this project. Try copying the URL manually.",
         variant: "destructive",
       });
     }
+  };
+
+  const handleCommentToggle = () => {
+    setShowComments(!showComments);
+  };
+
+  const handleJoinClick = () => {
+    navigate(`/project/${project.id}`);
   };
 
   return (
@@ -99,14 +119,20 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         </div>
         
         <div className="flex flex-col items-center">
-          <button className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1">
+          <button 
+            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
+            onClick={handleCommentToggle}
+          >
             <MessageSquare className="w-3 h-3 text-white" />
           </button>
           <span className="text-white text-xs">{project.comments}</span>
         </div>
         
         <div className="flex flex-col items-center">
-          <button className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1">
+          <button 
+            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
+            onClick={handleJoinClick}
+          >
             <Handshake className="w-3 h-3 text-white" />
           </button>
           <span className="text-white text-xs">Join</span>
@@ -149,6 +175,24 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
           <span className="font-medium">#creative</span> <span className="font-medium">#mind</span> <span className="font-medium">#love</span>
         </p>
       </div>
+
+      {/* Comments overlay */}
+      {showComments && (
+        <div className="absolute inset-0 bg-black bg-opacity-70 z-20 p-4 overflow-auto">
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Comments</h3>
+              <button 
+                onClick={handleCommentToggle}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <ProjectCommentSection projectId={project.id} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

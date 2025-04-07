@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Database } from "@/integrations/supabase/types";
 
 export interface Comment {
   id: string;
@@ -60,6 +59,19 @@ export const addComment = async (projectId: string, userId: string, content: str
 
 // Join Requests
 export const createJoinRequest = async (projectId: string, requesterId: string, ownerId: string): Promise<JoinRequest | null> => {
+  // Check if a request already exists
+  const { data: existingRequests } = await supabase
+    .from("join_requests")
+    .select("*")
+    .eq("project_id", projectId)
+    .eq("requester_id", requesterId)
+    .eq("status", "pending");
+
+  if (existingRequests && existingRequests.length > 0) {
+    console.log("Request already exists");
+    return existingRequests[0] as JoinRequest;
+  }
+
   const { data, error } = await supabase
     .from("join_requests")
     .insert({
@@ -119,6 +131,23 @@ export const updateJoinRequestStatus = async (requestId: string, status: "accept
     ...data,
     status: data.status as "pending" | "accepted" | "rejected"
   };
+};
+
+// Check if user has already requested to join
+export const checkExistingJoinRequest = async (projectId: string, userId: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from("join_requests")
+    .select("*")
+    .eq("project_id", projectId)
+    .eq("requester_id", userId)
+    .eq("status", "pending");
+
+  if (error) {
+    console.error("Error checking join request:", error);
+    return false;
+  }
+
+  return data && data.length > 0;
 };
 
 // Share project

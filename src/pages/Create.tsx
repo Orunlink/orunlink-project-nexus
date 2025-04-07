@@ -1,13 +1,207 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Camera, Upload, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Create = () => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [tags, setTags] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...selectedFiles]);
+      
+      // Create preview URLs for the selected files
+      const newPreviewUrls = selectedFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    // Release the object URL to avoid memory leaks
+    URL.revokeObjectURL(previewUrls[index]);
+    
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a title for your project",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (files.length === 0) {
+      toast({
+        title: "No media selected",
+        description: "Please upload at least one image or video",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // In a real implementation, this would upload files and save project data
+      // Simulate an upload delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      toast({
+        title: "Project created!",
+        description: "Your project has been published successfully",
+      });
+      
+      // Redirect to the projects page
+      navigate('/projects');
+    } catch (error) {
+      console.error("Error creating project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Layout hideNavbar={true}>
-      <div className="container mx-auto px-4 py-8 pt-20 pb-24">
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Create New Project</h1>
-        <p>This is the create project page (placeholder)</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="title">Project Title</Label>
+            <Input
+              id="title"
+              placeholder="Enter a title for your project"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Describe your project..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full min-h-[120px]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                placeholder="e.g., Design, Technology, Art"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="tags">Tags</Label>
+              <Input
+                id="tags"
+                placeholder="Separate tags with commas"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Upload Media</Label>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+              {/* File previews */}
+              {previewUrls.map((url, index) => (
+                <div key={index} className="relative aspect-square rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+                  <img 
+                    src={url} 
+                    alt={`Preview ${index}`} 
+                    className="w-full h-full object-cover" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="absolute top-1 right-1 bg-black bg-opacity-60 rounded-full p-1"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Upload button */}
+              <div className="aspect-square rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-50">
+                <label 
+                  htmlFor="file-upload" 
+                  className="cursor-pointer w-full h-full flex flex-col items-center justify-center p-4"
+                >
+                  <Camera className="w-8 h-8 text-gray-400 mb-2" />
+                  <span className="text-sm text-gray-500">Add Media</span>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept="image/*,video/*"
+                    className="hidden"
+                    multiple
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button 
+              type="submit" 
+              className="bg-orunlink-purple hover:bg-orunlink-dark px-8"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="mr-2">Uploading...</span>
+                  <span className="animate-spin">
+                    <Upload className="w-4 h-4" />
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Publish Project
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </Layout>
   );
