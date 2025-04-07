@@ -1,8 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Heart, MessageSquare, Share2, Bookmark, Handshake } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Heart, MessageSquare, Share2, Bookmark } from "lucide-react";
 
 interface ProjectCardProps {
   id: string;
@@ -44,64 +43,64 @@ const ProjectCard = ({
   };
 
   return (
-    <Link to={`/project/${id}`} className="orunlink-card block">
+    <Link to={`/project/${id}`} className="bg-white rounded-md overflow-hidden shadow-sm">
       <div className="relative">
-        {isVideo ? (
-          <video
-            className="w-full h-48 object-cover"
-            src={imageUrl}
-            controls={false}
-          />
-        ) : (
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-48 object-cover"
-          />
-        )}
+        <div className="pb-[100%] relative">
+          {isVideo ? (
+            <video
+              className="absolute inset-0 w-full h-full object-cover"
+              src={imageUrl}
+              muted
+              loop
+            />
+          ) : (
+            <img
+              src={imageUrl}
+              alt={title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+        </div>
         {isVideo && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center">
-              <div className="w-0 h-0 border-t-6 border-t-transparent border-l-10 border-l-white border-b-6 border-b-transparent ml-1"></div>
-            </div>
+          <div className="absolute top-2 right-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
+              <path d="M4 4h16v16H4V4zm12 10l-4-2v4l4-2z" />
+            </svg>
           </div>
         )}
       </div>
-      <div className="p-4">
+      <div className="p-3">
         <div className="flex items-center space-x-2 mb-2">
           <img
             src={owner.avatar}
             alt={owner.name}
-            className="w-8 h-8 rounded-full object-cover"
+            className="w-7 h-7 rounded-full object-cover"
           />
-          <span className="text-sm font-medium text-gray-700">{owner.name}</span>
+          <span className="text-sm font-medium text-gray-800">{owner.name}</span>
         </div>
-        <h3 className="font-semibold text-lg mb-1 line-clamp-1">{title}</h3>
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{description}</p>
+        <h3 className="font-semibold text-base mb-1 line-clamp-1">{title}</h3>
+        <p className="text-gray-600 text-xs mb-2 line-clamp-2">{description}</p>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <button
               onClick={handleLike}
               className="flex items-center text-gray-500 hover:text-red-500"
             >
               <Heart
-                className={`w-5 h-5 mr-1 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
+                className={`w-4 h-4 mr-1 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
               />
               <span className="text-xs">{currentLikes}</span>
             </button>
             <button className="flex items-center text-gray-500 hover:text-blue-500">
-              <MessageSquare className="w-5 h-5 mr-1" />
+              <MessageSquare className="w-4 h-4 mr-1" />
               <span className="text-xs">{comments}</span>
-            </button>
-            <button className="flex items-center text-gray-500 hover:text-gray-700">
-              <Share2 className="w-5 h-5" />
             </button>
           </div>
           <button
             onClick={handleSave}
             className={`text-gray-500 ${isSaved ? "text-orunlink-purple" : "hover:text-orunlink-purple"}`}
           >
-            <Bookmark className={`w-5 h-5 ${isSaved ? "fill-orunlink-purple" : ""}`} />
+            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-orunlink-purple" : ""}`} />
           </button>
         </div>
       </div>

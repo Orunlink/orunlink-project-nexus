@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Heart, MessageSquare, Share2, Bookmark, Handshake, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -187,12 +186,12 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
       <Drawer open={showComments} onOpenChange={setShowComments}>
         <DrawerContent className="max-h-[85vh]">
           <DrawerHeader className="border-b border-gray-100 px-4 py-3 flex items-center justify-between">
-            <DrawerTitle className="text-center text-base font-medium">Comments ({project.comments})</DrawerTitle>
+            <DrawerTitle className="text-center text-base font-medium">{project.comments} comments</DrawerTitle>
             <DrawerClose className="absolute right-4 top-3 p-1 rounded-full hover:bg-gray-100">
               <X className="w-5 h-5" />
             </DrawerClose>
           </DrawerHeader>
-          <div className="px-2 py-2 overflow-auto max-h-[calc(85vh-60px)]">
+          <div className="px-0 py-0 overflow-auto max-h-[calc(85vh-60px)]">
             <ProjectCommentSection projectId={project.id} />
           </div>
         </DrawerContent>
