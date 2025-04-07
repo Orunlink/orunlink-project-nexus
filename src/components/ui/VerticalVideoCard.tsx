@@ -6,6 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import { shareProject } from "@/services/projectService";
 import { useNavigate } from "react-router-dom";
 import ProjectCommentSection from "./ProjectCommentSection";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerClose
+} from "@/components/ui/drawer";
 
 interface Project {
   id: string;
@@ -176,23 +183,20 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         </p>
       </div>
 
-      {/* Comments overlay */}
-      {showComments && (
-        <div className="absolute inset-0 bg-black bg-opacity-70 z-20 p-4 overflow-auto">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Comments</h3>
-              <button 
-                onClick={handleCommentToggle}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* TikTok-style comments drawer */}
+      <Drawer open={showComments} onOpenChange={setShowComments}>
+        <DrawerContent className="max-h-[85vh]">
+          <DrawerHeader className="border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+            <DrawerTitle className="text-center text-base font-medium">Comments ({project.comments})</DrawerTitle>
+            <DrawerClose className="absolute right-4 top-3 p-1 rounded-full hover:bg-gray-100">
+              <X className="w-5 h-5" />
+            </DrawerClose>
+          </DrawerHeader>
+          <div className="px-2 py-2 overflow-auto max-h-[calc(85vh-60px)]">
             <ProjectCommentSection projectId={project.id} />
           </div>
-        </div>
-      )}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
