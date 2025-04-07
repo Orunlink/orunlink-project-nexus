@@ -1,7 +1,10 @@
+
 import Layout from "@/components/layout/Layout";
 import ProfileSection from "@/components/ui/ProfileSection";
 import ProjectCard from "@/components/ui/ProjectCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Settings } from "lucide-react";
+import ProfileSettingsMenu from "@/components/ui/ProfileSettingsMenu";
 
 // Mock user data
 const mockUser = {
@@ -121,15 +124,20 @@ const Profile = () => {
   return (
     <Layout hideNavbar={true} hideFooter={true}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile section */}
-        <ProfileSection
-          name={mockUser.name}
-          bio={mockUser.bio}
-          avatar={mockUser.avatar}
-          followers={mockUser.followers}
-          following={mockUser.following}
-          projects={mockUser.projects}
-        />
+        {/* Profile section with settings button */}
+        <div className="relative">
+          <ProfileSection
+            name={mockUser.name}
+            bio={mockUser.bio}
+            avatar={mockUser.avatar}
+            followers={mockUser.followers}
+            following={mockUser.following}
+            projects={mockUser.projects}
+          />
+          <div className="absolute top-4 right-4">
+            <ProfileSettingsMenu userId={mockUser.id} avatar={mockUser.avatar} />
+          </div>
+        </div>
         
         {/* Tabs for different project categories */}
         <div className="mt-8">
