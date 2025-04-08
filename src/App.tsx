@@ -18,6 +18,11 @@ import Explore from "./pages/Explore";
 import Projects from "./pages/Projects";
 import ProjectChat from "./pages/ProjectChat";
 import Create from "./pages/Create";
+import AccountSettings from "./pages/AccountSettings";
+import EditProfile from "./pages/EditProfile";
+import NotificationSettings from "./pages/NotificationSettings";
+import PrivacySecurity from "./pages/PrivacySecurity";
+import HelpSupport from "./pages/HelpSupport";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +45,11 @@ const App = () => (
           <Route path="/explore" element={<Explore />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/create" element={<Create />} />
+          <Route path="/account-settings" element={<AccountSettings />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/notification-settings" element={<NotificationSettings />} />
+          <Route path="/privacy-security" element={<PrivacySecurity />} />
+          <Route path="/help-support" element={<HelpSupport />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

@@ -2,6 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileSectionProps {
   name: string;
@@ -22,6 +23,8 @@ const ProfileSection = ({
   projects,
   username = "",
 }: ProfileSectionProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white overflow-hidden">
       <div className="flex flex-col items-center pt-6 pb-4">
@@ -56,12 +59,20 @@ const ProfileSection = ({
           </div>
         </div>
 
-        <div className="flex space-x-3 px-6">
+        <div className="flex space-x-3 px-6 w-full">
           <Button className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium">
             Follow
           </Button>
           <Button className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200">
             Message
+          </Button>
+          <Button 
+            variant="outline"
+            size="icon"
+            className="rounded-md border border-gray-200"
+            onClick={() => navigate("/account-settings")}
+          >
+            <User className="h-5 w-5 text-gray-600" />
           </Button>
         </div>
       </div>

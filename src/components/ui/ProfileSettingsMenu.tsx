@@ -54,10 +54,6 @@ const ProfileSettingsMenu = ({ userId, avatar }: ProfileSettingsMenuProps) => {
     });
   };
 
-  const handleOpenDialog = (dialog: string) => {
-    setOpenDialog(dialog);
-  };
-
   return (
     <>
       <DropdownMenu>
@@ -78,29 +74,34 @@ const ProfileSettingsMenu = ({ userId, avatar }: ProfileSettingsMenuProps) => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           
-          <DropdownMenuItem onClick={() => handleOpenDialog("profilePic")} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => navigate("/account-settings")} className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Account Settings</span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem onClick={() => setOpenDialog("profilePic")} className="cursor-pointer">
             <Camera className="mr-2 h-4 w-4" />
             <span>Change Profile Picture</span>
           </DropdownMenuItem>
           
-          <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem onClick={() => navigate("/edit-profile")} className="cursor-pointer">
             <PenSquare className="mr-2 h-4 w-4" />
             <span>Edit Profile</span>
           </DropdownMenuItem>
           
           <DropdownMenuSeparator />
           
-          <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem onClick={() => navigate("/notification-settings")} className="cursor-pointer">
             <Bell className="mr-2 h-4 w-4" />
             <span>Notification Settings</span>
           </DropdownMenuItem>
           
-          <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem onClick={() => navigate("/privacy-security")} className="cursor-pointer">
             <Shield className="mr-2 h-4 w-4" />
             <span>Privacy & Security</span>
           </DropdownMenuItem>
           
-          <DropdownMenuItem className="cursor-pointer">
+          <DropdownMenuItem onClick={() => navigate("/help-support")} className="cursor-pointer">
             <HelpCircle className="mr-2 h-4 w-4" />
             <span>Help & Support</span>
           </DropdownMenuItem>
