@@ -4,8 +4,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, Plus, Send, Paperclip, Image, Mic } from "lucide-react";
+import { ArrowLeft, Users, Plus, Send, Paperclip, Image, Mic, Settings } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import { useToast } from "@/hooks/use-toast";
+import ChatSettings from "@/components/chat/ChatSettings";
 
 // Mock data for a project chat
 interface Message {
@@ -24,6 +26,7 @@ interface Member {
   name: string;
   avatar: string;
   online?: boolean;
+  role?: "admin" | "member";
 }
 
 interface ProjectChatData {
@@ -34,6 +37,7 @@ interface ProjectChatData {
   avatar?: string;
   members: Member[];
   messages: Message[];
+  wallpaper?: string;
 }
 
 // Mock project chat data
@@ -45,10 +49,11 @@ const getMockProjectChat = (projectId: string): ProjectChatData => {
     isGroup: true,
     description: "Project discussion channel",
     avatar: "https://randomuser.me/api/portraits/men/22.jpg",
+    wallpaper: "default",
     members: [
-      { id: "1", name: "John Doe", avatar: "https://randomuser.me/api/portraits/men/22.jpg", online: true },
-      { id: "2", name: "Jane Smith", avatar: "https://randomuser.me/api/portraits/women/23.jpg", online: true },
-      { id: "3", name: "Alex Johnson", avatar: "https://randomuser.me/api/portraits/men/32.jpg" }
+      { id: "1", name: "John Doe", avatar: "https://randomuser.me/api/portraits/men/22.jpg", online: true, role: "admin" },
+      { id: "2", name: "Jane Smith", avatar: "https://randomuser.me/api/portraits/women/23.jpg", online: true, role: "member" },
+      { id: "3", name: "Alex Johnson", avatar: "https://randomuser.me/api/portraits/men/32.jpg", role: "member" }
     ],
     messages: [
       {
@@ -88,6 +93,8 @@ const ProjectChat = () => {
   const [messageText, setMessageText] = useState("");
   const [projectChat, setProjectChat] = useState<ProjectChatData | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (projectId) {
@@ -166,6 +173,32 @@ const ProjectChat = () => {
     }
   };
 
+  const handleUpdateSettings = (updatedChat: ProjectChatData) => {
+    setProjectChat(updatedChat);
+    setShowSettings(false);
+    toast({
+      title: "Settings updated",
+      description: "Your changes have been saved successfully",
+    });
+  };
+
+  const getWallpaperStyle = () => {
+    if (!projectChat) return {};
+    
+    switch (projectChat.wallpaper) {
+      case 'orunlink-gradient':
+        return { backgroundImage: 'linear-gradient(to bottom right, #7C3AED, #9F7AEA)' };
+      case 'orunlink-pattern':
+        return { 
+          backgroundColor: '#121212',
+          backgroundImage: 'radial-gradient(circle at 25px 25px, rgba(124, 58, 237, 0.15) 2%, transparent 0%), radial-gradient(circle at 75px 75px, rgba(124, 58, 237, 0.15) 2%, transparent 0%)',
+          backgroundSize: '100px 100px' 
+        };
+      default:
+        return { backgroundColor: '#121212' }; // Default black background
+    }
+  };
+
   if (!projectChat) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
@@ -174,7 +207,7 @@ const ProjectChat = () => {
     <Layout hideNavbar hideFooter hideBottomNav hideHeader>
       <div className="flex flex-col h-screen">
         {/* Chat header */}
-        <div className="flex items-center justify-between p-3 bg-green-700 text-white">
+        <div className="flex items-center justify-between p-3 bg-orunlink-purple text-white">
           <div className="flex items-center">
             <Button 
               onClick={handleBack}
@@ -202,14 +235,25 @@ const ProjectChat = () => {
           </div>
           
           <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white"
+              onClick={() => setShowSettings(true)}
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" className="text-white">
               <Users className="h-5 w-5" />
             </Button>
           </div>
         </div>
         
-        {/* Messages area with black background */}
-        <div className="flex-1 overflow-y-auto bg-black px-4 py-2">
+        {/* Messages area with configurable background */}
+        <div 
+          className="flex-1 overflow-y-auto px-4 py-2"
+          style={getWallpaperStyle()}
+        >
           <div className="space-y-4">
             {projectChat.messages.map((message, index) => {
               const isMe = message.isMe || message.senderId === "me";
@@ -234,7 +278,7 @@ const ProjectChat = () => {
                       <div
                         className={`py-2 px-3 rounded-lg ${
                           isMe
-                            ? "bg-green-700 text-white rounded-br-none"
+                            ? "bg-orunlink-purple text-white rounded-br-none"
                             : "bg-white text-black rounded-tl-none"
                         }`}
                       >
@@ -260,7 +304,7 @@ const ProjectChat = () => {
         </div>
         
         {/* Message input */}
-        <div className="p-2 bg-green-700">
+        <div className="p-2 bg-orunlink-purple">
           <form onSubmit={handleSendMessage} className="flex items-center">
             <Button 
               type="button"
@@ -308,7 +352,7 @@ const ProjectChat = () => {
               ) : (
                 <Button
                   type="submit"
-                  className="p-1 h-8 w-8 bg-green-600 rounded-full"
+                  className="p-1 h-8 w-8 bg-orunlink-purple rounded-full"
                   size="icon"
                 >
                   <Send className="h-4 w-4 text-white" />
@@ -318,6 +362,15 @@ const ProjectChat = () => {
           </form>
         </div>
       </div>
+
+      {/* Settings dialog for project chat */}
+      {showSettings && projectChat && (
+        <ChatSettings 
+          projectChat={projectChat} 
+          onClose={() => setShowSettings(false)} 
+          onUpdate={handleUpdateSettings}
+        />
+      )}
     </Layout>
   );
 };
