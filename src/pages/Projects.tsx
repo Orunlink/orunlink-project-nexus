@@ -75,6 +75,10 @@ const Projects = () => {
     return null;
   };
 
+  const handleProjectClick = (projectId: string) => {
+    navigate(`/project-chat/${projectId}`);
+  };
+
   return (
     <Layout hideNavbar={true} hideFooter={true}>
       <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen">
@@ -107,8 +111,8 @@ const Projects = () => {
           {myProjects.map((project) => (
             <Card 
               key={project.id}
-              className="p-4"
-              onClick={() => navigate(`/project/${project.id}`)}
+              className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleProjectClick(project.id)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">

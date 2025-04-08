@@ -16,6 +16,7 @@ import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import Explore from "./pages/Explore";
 import Projects from "./pages/Projects";
+import ProjectChat from "./pages/ProjectChat";
 import Create from "./pages/Create";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/home" element={<Home />} />
           <Route path="/project/:projectId" element={<ProjectDetail />} />
+          <Route path="/project-chat/:projectId" element={<ProjectChat />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/messages" element={<Messages />} />
