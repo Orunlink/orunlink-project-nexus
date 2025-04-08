@@ -1,15 +1,18 @@
 
+import { ArrowLeft } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import ProfileSection from "@/components/ui/ProfileSection";
 import ProjectCard from "@/components/ui/ProjectCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
 import ProfileSettingsMenu from "@/components/ui/ProfileSettingsMenu";
 
 // Mock user data
 const mockUser = {
   id: "user1",
   name: "Alex Johnson",
+  username: "alexj",
   bio: "UI/UX Designer specializing in mobile interfaces and web applications",
   avatar: "https://randomuser.me/api/portraits/men/32.jpg",
   followers: 486,
@@ -120,12 +123,74 @@ const mockSavedProjects = [
   },
 ];
 
+// Mock videos
+const mockVideos = [
+  {
+    id: "8",
+    title: "Animation Workflow Tutorial",
+    description: "Learn how to create smooth animations for your UI designs.",
+    imageUrl: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0",
+    owner: {
+      name: mockUser.name,
+      avatar: mockUser.avatar,
+    },
+    likes: 245,
+    comments: 37,
+    isVideo: true,
+  },
+  {
+    id: "9",
+    title: "Design System Overview",
+    description: "A walkthrough of creating a consistent design system for your products.",
+    imageUrl: "https://images.unsplash.com/photo-1618004912476-29818d81ae2e",
+    owner: {
+      name: mockUser.name,
+      avatar: mockUser.avatar,
+    },
+    likes: 189,
+    comments: 24,
+    isVideo: true,
+  },
+];
+
+type TabType = "all" | "projects" | "videos" | "collaborations" | "saved";
+
 const Profile = () => {
+  const [activeTab, setActiveTab] = useState<TabType>("all");
+
+  // Combine all project types for the "all" tab
+  const allProjects = [...mockProjects, ...mockVideos];
+
+  const renderProjects = () => {
+    switch (activeTab) {
+      case "all":
+        return allProjects;
+      case "projects":
+        return mockProjects.filter(p => !p.isVideo);
+      case "videos":
+        return mockVideos;
+      case "collaborations":
+        return mockCollaborations;
+      case "saved":
+        return mockSavedProjects;
+      default:
+        return allProjects;
+    }
+  };
+
   return (
     <Layout hideNavbar={true} hideFooter={true}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile section with settings button */}
+      <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="relative">
+          <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="absolute top-3 right-4">
+              <ProfileSettingsMenu userId={mockUser.id} avatar={mockUser.avatar} />
+            </div>
+          </div>
+          
           <ProfileSection
             name={mockUser.name}
             bio={mockUser.bio}
@@ -133,92 +198,94 @@ const Profile = () => {
             followers={mockUser.followers}
             following={mockUser.following}
             projects={mockUser.projects}
+            username={mockUser.username}
           />
-          <div className="absolute top-4 right-4">
-            <ProfileSettingsMenu userId={mockUser.id} avatar={mockUser.avatar} />
+          
+          {/* Tabs */}
+          <div className="flex justify-center border-b border-gray-100">
+            <div className="flex space-x-6">
+              <TabButton 
+                active={activeTab === "all"}
+                onClick={() => setActiveTab("all")}
+              >
+                All
+              </TabButton>
+              <TabButton 
+                active={activeTab === "projects"}
+                onClick={() => setActiveTab("projects")}
+              >
+                Projects
+              </TabButton>
+              <TabButton 
+                active={activeTab === "videos"}
+                onClick={() => setActiveTab("videos")}
+              >
+                Videos
+              </TabButton>
+              <TabButton 
+                active={activeTab === "collaborations"}
+                onClick={() => setActiveTab("collaborations")}
+              >
+                Collabs
+              </TabButton>
+              <TabButton 
+                active={activeTab === "saved"}
+                onClick={() => setActiveTab("saved")}
+              >
+                Saved
+              </TabButton>
+            </div>
           </div>
         </div>
         
-        {/* Tabs for different project categories */}
-        <div className="mt-8">
-          <Tabs defaultValue="projects" className="w-full">
-            <TabsList className="w-full max-w-md mx-auto mb-8">
-              <TabsTrigger value="projects" className="flex-1">My Projects</TabsTrigger>
-              <TabsTrigger value="collaborations" className="flex-1">Collaborations</TabsTrigger>
-              <TabsTrigger value="saved" className="flex-1">Saved</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="projects">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {mockProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    id={project.id}
-                    title={project.title}
-                    description={project.description}
-                    imageUrl={project.imageUrl}
-                    owner={project.owner}
-                    likes={project.likes}
-                    comments={project.comments}
-                    isVideo={project.isVideo}
-                  />
-                ))}
+        {/* Grid layout for projects */}
+        <div className="p-2">
+          <div className="grid grid-cols-2 gap-2">
+            {renderProjects().map((project) => (
+              <div key={project.id} className="aspect-square overflow-hidden rounded-lg relative">
+                <img 
+                  src={project.imageUrl} 
+                  alt={project.title} 
+                  className="object-cover w-full h-full"
+                />
+                {project.isVideo && (
+                  <div className="absolute top-2 right-2 bg-black/30 rounded-full p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                )}
               </div>
-            </TabsContent>
-            
-            <TabsContent value="collaborations">
-              {mockCollaborations.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {mockCollaborations.map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      id={project.id}
-                      title={project.title}
-                      description={project.description}
-                      imageUrl={project.imageUrl}
-                      owner={project.owner}
-                      likes={project.likes}
-                      comments={project.comments}
-                      isVideo={project.isVideo}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No collaborations yet</h3>
-                  <p className="text-gray-500">Join projects to start collaborating with others</p>
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="saved">
-              {mockSavedProjects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {mockSavedProjects.map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      id={project.id}
-                      title={project.title}
-                      description={project.description}
-                      imageUrl={project.imageUrl}
-                      owner={project.owner}
-                      likes={project.likes}
-                      comments={project.comments}
-                      isVideo={project.isVideo}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No saved projects</h3>
-                  <p className="text-gray-500">Save projects to view them later</p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+            ))}
+          </div>
         </div>
       </div>
     </Layout>
+  );
+};
+
+// Tab button component
+const TabButton = ({ 
+  children, 
+  active, 
+  onClick 
+}: { 
+  children: React.ReactNode; 
+  active: boolean; 
+  onClick: () => void;
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`py-3 px-1 text-sm font-medium relative ${
+        active ? "text-orunlink-purple" : "text-gray-500"
+      }`}
+    >
+      {children}
+      {active && (
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-orunlink-purple"></div>
+      )}
+    </button>
   );
 };
 

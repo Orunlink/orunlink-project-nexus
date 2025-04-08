@@ -1,4 +1,5 @@
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +10,7 @@ interface ProfileSectionProps {
   followers: number;
   following: number;
   projects: number;
+  username?: string;
 }
 
 const ProfileSection = ({
@@ -18,50 +20,49 @@ const ProfileSection = ({
   followers,
   following,
   projects,
+  username = "",
 }: ProfileSectionProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="h-32 bg-gradient-to-r from-orunlink-purple to-orunlink-light"></div>
-      <div className="px-6 pb-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-end -mt-16 mb-4">
-          <div className="relative">
+    <div className="bg-white overflow-hidden">
+      <div className="flex flex-col items-center pt-6 pb-4">
+        <div className="mb-3">
+          <Avatar className="h-24 w-24 border-4 border-white shadow-sm">
             {avatar ? (
-              <img
-                src={avatar}
-                alt={name}
-                className="w-24 h-24 rounded-full border-4 border-white object-cover"
-              />
+              <AvatarImage src={avatar} alt={name} />
             ) : (
-              <div className="w-24 h-24 rounded-full border-4 border-white bg-gray-100 flex items-center justify-center">
+              <AvatarFallback className="bg-gray-100">
                 <User className="w-12 h-12 text-gray-400" />
-              </div>
+              </AvatarFallback>
             )}
-          </div>
-          <div className="mt-4 sm:mt-0 sm:ml-4 text-center sm:text-left">
-            <h1 className="text-xl font-bold">{name}</h1>
-            <p className="text-gray-600 text-sm mt-1">{bio}</p>
-          </div>
-          <div className="flex-grow"></div>
-          <div className="mt-4 sm:mt-0">
-            <Button className="bg-orunlink-purple hover:bg-orunlink-dark">
-              Follow
-            </Button>
-          </div>
+          </Avatar>
         </div>
+        
+        {username && (
+          <h2 className="text-lg font-bold text-center mt-1">@{username}</h2>
+        )}
+        
+        <p className="text-gray-600 text-sm mt-2 max-w-xs text-center px-6">
+          {bio}
+        </p>
 
-        <div className="flex justify-center sm:justify-start space-x-8 border-t border-gray-100 pt-4">
+        <div className="flex justify-center space-x-12 mt-4 mb-6">
           <div className="text-center">
-            <div className="font-semibold">{followers}</div>
+            <div className="font-bold text-lg">{followers.toLocaleString()}</div>
             <div className="text-gray-500 text-sm">Followers</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold">{following}</div>
+            <div className="font-bold text-lg">{following.toLocaleString()}</div>
             <div className="text-gray-500 text-sm">Following</div>
           </div>
-          <div className="text-center">
-            <div className="font-semibold">{projects}</div>
-            <div className="text-gray-500 text-sm">Projects</div>
-          </div>
+        </div>
+
+        <div className="flex space-x-3 px-6">
+          <Button className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium">
+            Follow
+          </Button>
+          <Button className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200">
+            Message
+          </Button>
         </div>
       </div>
     </div>
