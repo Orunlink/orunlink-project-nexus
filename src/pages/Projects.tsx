@@ -1,7 +1,12 @@
+
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProjectCard from "@/components/ui/ProjectCard";
+import { Plus, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Layout from "@/components/layout/Layout";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface Project {
   id: string;
@@ -15,12 +20,14 @@ interface Project {
   likes: number;
   comments: number;
   isVideo?: boolean;
+  status?: string;
+  members?: { name: string; avatar: string }[];
 }
 
 const myProjects: Project[] = [
   {
     id: "101",
-    title: "My Personal Portfolio Website",
+    title: "UI Design System",
     description: "A showcase of my work and skills using React and Tailwind CSS.",
     imageUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
     owner: {
@@ -29,10 +36,15 @@ const myProjects: Project[] = [
     },
     likes: 48,
     comments: 5,
+    status: "new",
+    members: [
+      { name: "John Doe", avatar: "https://randomuser.me/api/portraits/men/22.jpg" },
+      { name: "Jane Smith", avatar: "https://randomuser.me/api/portraits/women/23.jpg" }
+    ]
   },
   {
     id: "102",
-    title: "Task Management App",
+    title: "Mobile App",
     description: "Productivity tool for organizing tasks and projects with team collaboration features.",
     imageUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b",
     owner: {
@@ -42,163 +54,89 @@ const myProjects: Project[] = [
     likes: 29,
     comments: 8,
     isVideo: true,
-  },
-];
-
-const collaborationProjects: Project[] = [
-  {
-    id: "201",
-    title: "Financial Dashboard",
-    description: "Interactive dashboard for personal finance management and investment tracking.",
-    imageUrl: "https://images.unsplash.com/photo-1579170053380-58064b2dee03",
-    owner: {
-      name: "Finance Group",
-      avatar: "https://randomuser.me/api/portraits/women/29.jpg",
-    },
-    likes: 87,
-    comments: 14,
-  },
-  {
-    id: "202",
-    title: "E-learning Platform",
-    description: "Online education platform with courses, quizzes, and progress tracking.",
-    imageUrl: "https://images.unsplash.com/photo-1501504905252-473c47e087f8",
-    owner: {
-      name: "Education Team",
-      avatar: "https://randomuser.me/api/portraits/men/54.jpg",
-    },
-    likes: 112,
-    comments: 31,
-  },
-  {
-    id: "203",
-    title: "Weather App Redesign",
-    description: "Modern interface for weather forecasting with location-based features.",
-    imageUrl: "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b",
-    owner: {
-      name: "Design Collective",
-      avatar: "https://randomuser.me/api/portraits/women/62.jpg",
-    },
-    likes: 76,
-    comments: 12,
-    isVideo: true,
-  },
-];
-
-const savedProjects: Project[] = [
-  {
-    id: "301",
-    title: "AI Image Generator",
-    description: "Machine learning tool that creates unique images based on text prompts.",
-    imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5",
-    owner: {
-      name: "AI Innovations",
-      avatar: "https://randomuser.me/api/portraits/men/75.jpg",
-    },
-    likes: 243,
-    comments: 47,
-  },
-  {
-    id: "302",
-    title: "Minimalist E-commerce",
-    description: "Clean, user-friendly online store design with focus on product presentation.",
-    imageUrl: "https://images.unsplash.com/photo-1529400971008-f566de0e6dfc",
-    owner: {
-      name: "Design Masters",
-      avatar: "https://randomuser.me/api/portraits/women/33.jpg",
-    },
-    likes: 189,
-    comments: 26,
+    status: "wip",
+    members: [
+      { name: "John Doe", avatar: "https://randomuser.me/api/portraits/men/22.jpg" },
+      { name: "Jane Smith", avatar: "https://randomuser.me/api/portraits/women/23.jpg" }
+    ]
   },
 ];
 
 const Projects = () => {
   const [activeTab, setActiveTab] = useState("my-projects");
+  const navigate = useNavigate();
+  
+  const getStatusBadge = (status: string | undefined) => {
+    if (status === 'new') {
+      return <Badge className="bg-green-500 hover:bg-green-600">New</Badge>;
+    } else if (status === 'wip') {
+      return <Badge className="bg-yellow-500 hover:bg-yellow-600">WIP</Badge>;
+    }
+    return null;
+  };
 
   return (
     <Layout hideNavbar={true} hideFooter={true}>
-      <div className="max-w-7xl mx-auto p-4 pt-20">
-        <h1 className="text-2xl font-bold mb-6">Projects</h1>
+      <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Projects</h1>
+          <Button className="bg-green-600 hover:bg-green-700 rounded-full">
+            <Plus className="mr-1 h-5 w-5" />
+            New Project
+          </Button>
+        </div>
         
-        <Tabs defaultValue="my-projects" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="my-projects">My Projects</TabsTrigger>
-            <TabsTrigger value="collaborations">Collaborations</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="my-projects">
-            {myProjects.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500">You haven't created any projects yet.</p>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Button variant="outline" className="h-16 bg-gray-200 hover:bg-gray-300">
+            <div className="flex flex-col items-center">
+              <span className="font-semibold">Joint Projects</span>
+              <span className="text-xs text-gray-500">Use invite code</span>
+            </div>
+          </Button>
+          <Button variant="outline" className="h-16 bg-gray-200 hover:bg-gray-300">
+            <div className="flex flex-col items-center">
+              <span className="font-semibold">Find Partners</span>
+              <span className="text-xs text-gray-500">Browse community</span>
+            </div>
+          </Button>
+        </div>
+        
+        <h2 className="text-lg font-medium mb-4">Your Active Projects</h2>
+        
+        <div className="space-y-4">
+          {myProjects.map((project) => (
+            <Card 
+              key={project.id}
+              className="p-4"
+              onClick={() => navigate(`/project/${project.id}`)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="flex">
+                    {project.members?.map((member, index) => (
+                      <Avatar key={index} className={`w-10 h-10 border-2 border-white ${index > 0 ? "-ml-4" : ""}`}>
+                        <AvatarImage src={member.avatar} alt={member.name} />
+                        <AvatarFallback>{member.name[0]}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </div>
+                  <div className="ml-3">
+                    <div className="flex items-center">
+                      <h3 className="font-medium">{project.title}</h3>
+                      <div className="ml-2">{getStatusBadge(project.status)}</div>
+                    </div>
+                    {project.members && (
+                      <p className="text-sm text-gray-500">{project.members.length} Members</p>
+                    )}
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    id={project.id}
-                    title={project.title}
-                    description={project.description}
-                    imageUrl={project.imageUrl}
-                    owner={project.owner}
-                    likes={project.likes}
-                    comments={project.comments}
-                    isVideo={project.isVideo}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="collaborations">
-            {collaborationProjects.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500">You're not part of any collaborative projects yet.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {collaborationProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    id={project.id}
-                    title={project.title}
-                    description={project.description}
-                    imageUrl={project.imageUrl}
-                    owner={project.owner}
-                    likes={project.likes}
-                    comments={project.comments}
-                    isVideo={project.isVideo}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="saved">
-            {savedProjects.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-500">You haven't saved any projects yet.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    id={project.id}
-                    title={project.title}
-                    description={project.description}
-                    imageUrl={project.imageUrl}
-                    owner={project.owner}
-                    likes={project.likes}
-                    comments={project.comments}
-                    isVideo={project.isVideo}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            </Card>
+          ))}
+        </div>
       </div>
     </Layout>
   );
