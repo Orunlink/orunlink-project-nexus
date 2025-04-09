@@ -7,25 +7,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 195 100% 98%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 265 83.3% 57.8%;
+    --primary: 196 100% 50%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 270 66.7% 76.5%;
+    --secondary: 195 70% 90%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 270 50% 42.2%;
+    --accent: 196 76% 52%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 265 83.3% 57.8%;
+    --ring: 196 100% 50%;
     --radius: 0.75rem;
   }
 
@@ -36,7 +36,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 265 83.3% 57.8%;
+    --primary: 196 100% 50%;
     --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -48,7 +48,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 265 83.3% 57.8%;
+    --ring: 196 100% 50%;
   }
 }
 
@@ -62,11 +62,27 @@
   }
 
   .orunlink-card {
-    @apply bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply bg-white/80 backdrop-blur-sm rounded-lg border border-blue-100/50 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300;
   }
 
   .orunlink-gradient {
-    @apply bg-gradient-to-r from-orunlink-purple to-orunlink-light text-white;
+    @apply bg-gradient-to-r from-orunlink-dark via-orunlink-purple to-orunlink-light text-white;
+  }
+  
+  .neo-glass {
+    @apply bg-white/20 backdrop-blur-md border border-white/30 shadow-lg;
+  }
+  
+  .soft-gradient {
+    @apply bg-gradient-to-br from-blue-50 to-blue-100/50;
+  }
+  
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-md border border-white/30 rounded-xl shadow-lg;
+  }
+  
+  .blue-gradient-bg {
+    @apply bg-gradient-to-br from-[#D3E4FD] to-[#F1F0FB];
   }
 }
 

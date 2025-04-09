@@ -57,10 +57,10 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				orunlink: {
-					purple: '#7C3AED',
-					light: '#9F7AEA',
-					dark: '#553C9A',
-					gray: '#F3F4F6',
+					purple: '#1EAEDB', // Changed from purple to bright blue
+					light: '#33C3F0', // Changed to sky blue
+					dark: '#0FA0CE', // Changed to darker blue
+					gray: '#F1F0FB', // Softer blue-tinted gray
 					"gray-dark": '#374151',
 				},
 			},

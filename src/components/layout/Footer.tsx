@@ -3,18 +3,18 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-white border-t border-gray-200 pt-8 pb-16 md:pb-8">
+    <footer className="bg-white/80 backdrop-blur-md border-t border-blue-100/50 pt-8 pb-16 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Orunlink</h3>
+            <h3 className="text-lg font-bold text-orunlink-dark mb-4">Orunlink</h3>
             <p className="text-gray-600 text-sm">
               A social collaborative platform that connects like-minded individuals, businesses, developers, and investors.
             </p>
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Resources</h3>
+            <h3 className="text-sm font-semibold text-orunlink-dark mb-4">Resources</h3>
             <ul className="space-y-3">
               <li>
                 <Link to="#" className="text-gray-600 hover:text-orunlink-purple text-sm">
@@ -35,7 +35,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Company</h3>
+            <h3 className="text-sm font-semibold text-orunlink-dark mb-4">Company</h3>
             <ul className="space-y-3">
               <li>
                 <Link to="#" className="text-gray-600 hover:text-orunlink-purple text-sm">
@@ -56,7 +56,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Legal</h3>
+            <h3 className="text-sm font-semibold text-orunlink-dark mb-4">Legal</h3>
             <ul className="space-y-3">
               <li>
                 <Link to="#" className="text-gray-600 hover:text-orunlink-purple text-sm">

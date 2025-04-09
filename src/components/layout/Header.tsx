@@ -8,7 +8,7 @@ const Header = () => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="fixed top-0 left-0 right-0 h-16 bg-[#8B5CF6] z-10 flex items-center px-4">
+    <div className="fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-orunlink-dark to-orunlink-purple neo-glass z-10 flex items-center px-4">
       <div className="flex-1 flex justify-start">
         <div className="flex items-center">
           <OrunlinkLogo size={isMobile ? 28 : 32} showText={false} color="white" />
@@ -16,12 +16,12 @@ const Header = () => {
       </div>
       <div className="flex-1 flex justify-end gap-4">
         <Link to="/notifications">
-          <button className="w-10 h-10 rounded-full flex items-center justify-center text-white">
+          <button className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
             <Bell className="w-6 h-6" />
           </button>
         </Link>
         <Link to="/messages">
-          <button className="w-10 h-10 rounded-full flex items-center justify-center text-white">
+          <button className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
             <Inbox className="w-6 h-6" />
           </button>
         </Link>

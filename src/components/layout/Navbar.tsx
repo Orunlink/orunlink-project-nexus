@@ -23,7 +23,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -64,7 +64,7 @@ const Navbar = () => {
               </div>
             </Link>
             
-            <Button variant="default" className="bg-orunlink-purple hover:bg-orunlink-dark ml-4">
+            <Button variant="default" className="bg-gradient-to-r from-orunlink-dark to-orunlink-purple hover:opacity-90 ml-4">
               Sign In
             </Button>
           </div>
@@ -97,7 +97,7 @@ const Navbar = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
+        <div className="md:hidden bg-white/90 backdrop-blur-md border-t border-blue-100/50">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (
               <Link
@@ -115,7 +115,7 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="pt-4 pb-3 border-t border-gray-200">
-              <Button className="w-full bg-orunlink-purple hover:bg-orunlink-dark">
+              <Button className="w-full bg-gradient-to-r from-orunlink-dark to-orunlink-purple hover:opacity-90">
                 Sign In
               </Button>
             </div>

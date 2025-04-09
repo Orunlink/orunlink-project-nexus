@@ -17,9 +17,9 @@ const BottomNav = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#8B5CF6] z-20 flex justify-around items-center">
+    <div className="fixed bottom-0 left-0 right-0 h-16 bg-gradient-to-r from-orunlink-dark to-orunlink-purple neo-glass z-20 flex justify-around items-center">
       <button 
-        className={`flex flex-col items-center ${isActive("/home") ? "text-white" : "text-white opacity-70 hover:opacity-100"}`}
+        className={`flex flex-col items-center ${isActive("/home") ? "text-white" : "text-white/70 hover:text-white"}`}
         onClick={() => navigateTo("/home")}
       >
         <HomeIcon className="w-5 h-5" />
@@ -27,7 +27,7 @@ const BottomNav = () => {
       </button>
       
       <button 
-        className={`flex flex-col items-center ${isActive("/explore") ? "text-white" : "text-white opacity-70 hover:opacity-100"}`}
+        className={`flex flex-col items-center ${isActive("/explore") ? "text-white" : "text-white/70 hover:text-white"}`}
         onClick={() => navigateTo("/explore")}
       >
         <Search className="w-5 h-5" />
@@ -35,7 +35,7 @@ const BottomNav = () => {
       </button>
       
       <button 
-        className={`flex flex-col items-center ${isActive("/create") ? "text-white" : "text-white opacity-70 hover:opacity-100"}`}
+        className={`flex flex-col items-center ${isActive("/create") ? "text-white" : "text-white/70 hover:text-white"}`}
         onClick={() => navigateTo("/create")}
       >
         <Upload className="w-5 h-5" />
@@ -43,7 +43,7 @@ const BottomNav = () => {
       </button>
       
       <button 
-        className={`flex flex-col items-center ${isActive("/projects") ? "text-white" : "text-white opacity-70 hover:opacity-100"}`}
+        className={`flex flex-col items-center ${isActive("/projects") ? "text-white" : "text-white/70 hover:text-white"}`}
         onClick={() => navigateTo("/projects")}
       >
         <BookOpen className="w-5 h-5" />
@@ -51,7 +51,7 @@ const BottomNav = () => {
       </button>
       
       <button 
-        className={`flex flex-col items-center ${isActive("/profile") ? "text-white" : "text-white opacity-70 hover:opacity-100"}`}
+        className={`flex flex-col items-center ${isActive("/profile") ? "text-white" : "text-white/70 hover:text-white"}`}
         onClick={() => navigateTo("/profile")}
       >
         <User className="w-5 h-5" />
