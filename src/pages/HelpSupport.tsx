@@ -54,21 +54,21 @@ const HelpSupport = () => {
             <AccordionItem value="item-2">
               <AccordionTrigger>How do I invite collaborators?</AccordionTrigger>
               <AccordionContent>
-                Open your project, tap on the settings icon, and select "Members". From there, you can invite collaborators via email or username.
+                Open your project, tap on the settings icon, and select &quot;Members&quot;. From there, you can invite collaborators via email or username.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-3">
               <AccordionTrigger>How do I change my password?</AccordionTrigger>
               <AccordionContent>
-                Go to Account Settings > Privacy & Security and tap on "Change password". Follow the instructions to set a new password.
+                Go to Account Settings {`>`} Privacy &amp; Security and tap on &quot;Change password&quot;. Follow the instructions to set a new password.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-4">
               <AccordionTrigger>Can I delete my account?</AccordionTrigger>
               <AccordionContent>
-                Yes, you can delete your account from Account Settings > Privacy & Security > Account Actions. Please note this action is irreversible.
+                Yes, you can delete your account from Account Settings {`>`} Privacy &amp; Security {`>`} Account Actions. Please note this action is irreversible.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
