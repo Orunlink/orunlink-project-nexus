@@ -57,6 +57,7 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
+    // @ts-ignore - The TypeScript definitions don't include the 'profiles' table yet
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -71,6 +72,7 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
+    // @ts-ignore - The TypeScript definitions don't include the 'profiles' table yet
     const { data, error } = await supabase
       .from('profiles')
       .update(profile)
@@ -84,6 +86,7 @@ export class SupabaseProvider implements ApiProvider {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
+    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -94,6 +97,7 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async getProjectById(id: string): Promise<Project | null> {
+    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -113,6 +117,7 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
+    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data, error } = await supabase
       .from('projects')
       .insert(newProject)
@@ -124,6 +129,7 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
+    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data: project, error } = await supabase
       .from('projects')
       .update(data)
@@ -136,6 +142,7 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async deleteProject(id: string): Promise<void> {
+    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { error } = await supabase
       .from('projects')
       .delete()
@@ -146,6 +153,7 @@ export class SupabaseProvider implements ApiProvider {
 
   // Comments methods
   async getCommentsByProjectId(projectId: string): Promise<Comment[]> {
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("comments")
       .select("*")
@@ -157,6 +165,7 @@ export class SupabaseProvider implements ApiProvider {
   }
 
   async addComment(projectId: string, userId: string, content: string): Promise<Comment | null> {
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("comments")
       .insert({
@@ -174,6 +183,7 @@ export class SupabaseProvider implements ApiProvider {
   // Join requests methods
   async createJoinRequest(projectId: string, requesterId: string, ownerId: string): Promise<JoinRequest | null> {
     // Check if a request already exists
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data: existingRequests } = await supabase
       .from("join_requests")
       .select("*")
@@ -185,6 +195,7 @@ export class SupabaseProvider implements ApiProvider {
       return existingRequests[0] as JoinRequest;
     }
 
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .insert({
@@ -205,6 +216,7 @@ export class SupabaseProvider implements ApiProvider {
   }
 
   async getPendingJoinRequestsForOwner(ownerId: string): Promise<JoinRequest[]> {
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .select("*")
@@ -221,6 +233,7 @@ export class SupabaseProvider implements ApiProvider {
   }
 
   async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> {
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .update({ status })
@@ -238,6 +251,7 @@ export class SupabaseProvider implements ApiProvider {
   }
 
   async checkExistingJoinRequest(projectId: string, userId: string): Promise<boolean> {
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .select("*")
@@ -251,6 +265,7 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
@@ -265,6 +280,7 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
+    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from('chat_messages')
       .insert({
