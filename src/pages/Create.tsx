@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from "@/components/layout/Layout";
@@ -26,14 +25,12 @@ const Create = () => {
       const selectedFiles = Array.from(e.target.files);
       setFiles(prev => [...prev, ...selectedFiles]);
       
-      // Create preview URLs for the selected files
       const newPreviewUrls = selectedFiles.map(file => URL.createObjectURL(file));
       setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
     }
   };
 
   const removeFile = (index: number) => {
-    // Release the object URL to avoid memory leaks
     URL.revokeObjectURL(previewUrls[index]);
     
     setFiles(prev => prev.filter((_, i) => i !== index));
@@ -64,8 +61,6 @@ const Create = () => {
     setIsSubmitting(true);
 
     try {
-      // In a real implementation, this would upload files and save project data
-      // Simulate an upload delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast({
@@ -73,7 +68,6 @@ const Create = () => {
         description: "Your project has been published successfully",
       });
       
-      // Redirect to the projects page
       navigate('/projects');
     } catch (error) {
       console.error("Error creating project:", error);
@@ -141,7 +135,6 @@ const Create = () => {
             <Label>Upload Media</Label>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
-              {/* File previews */}
               {previewUrls.map((url, index) => (
                 <div key={index} className="relative aspect-square rounded-md overflow-hidden bg-gray-100 border border-gray-200">
                   <img 
@@ -159,7 +152,6 @@ const Create = () => {
                 </div>
               ))}
               
-              {/* Upload button */}
               <div className="aspect-square rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center hover:bg-gray-50">
                 <label 
                   htmlFor="file-upload" 

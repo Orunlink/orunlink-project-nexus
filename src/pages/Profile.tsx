@@ -1,10 +1,5 @@
-
-import { ArrowLeft } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import ProfileSection from "@/components/ui/ProfileSection";
-import ProjectCard from "@/components/ui/ProjectCard";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import ProfileSettingsMenu from "@/components/ui/ProfileSettingsMenu";
 
@@ -183,9 +178,7 @@ const Profile = () => {
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="relative">
           <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <div className="w-10"></div>
             <div className="absolute top-3 right-4">
               <ProfileSettingsMenu userId={mockUser.id} avatar={mockUser.avatar} />
             </div>
