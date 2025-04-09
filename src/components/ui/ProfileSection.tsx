@@ -1,8 +1,12 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileSectionProps {
   name: string;
@@ -12,6 +16,7 @@ interface ProfileSectionProps {
   following: number;
   projects: number;
   username?: string;
+  isOwnProfile?: boolean;
 }
 
 const ProfileSection = ({
@@ -22,13 +27,64 @@ const ProfileSection = ({
   following,
   projects,
   username = "",
+  isOwnProfile = false,
 }: ProfileSectionProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user, updateProfile } = useAuth();
+  const [uploading, setUploading] = useState(false);
+
+  const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        return;
+      }
+
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+      // Upload the file to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL of the uploaded file
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update the user's profile with the new avatar
+      if (user) {
+        await updateProfile({ avatar_url: data.publicUrl });
+      }
+
+      toast({
+        title: "Avatar updated",
+        description: "Your profile picture has been successfully updated.",
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "There was an error uploading your profile picture.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="bg-white overflow-hidden">
       <div className="flex flex-col items-center pt-6 pb-4">
-        <div className="mb-3">
+        <div className="mb-3 relative">
           <Avatar className="h-24 w-24 border-4 border-white shadow-sm">
             {avatar ? (
               <AvatarImage src={avatar} alt={name} />
@@ -38,6 +94,24 @@ const ProfileSection = ({
               </AvatarFallback>
             )}
           </Avatar>
+          
+          {isOwnProfile && (
+            <div className="absolute -bottom-1 -right-1">
+              <label htmlFor="avatar-upload" className="cursor-pointer">
+                <div className="bg-orunlink-purple h-8 w-8 rounded-full flex items-center justify-center shadow-md">
+                  <Upload className="h-4 w-4 text-white" />
+                </div>
+                <input 
+                  id="avatar-upload" 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden"
+                  onChange={handleUploadAvatar}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+          )}
         </div>
         
         {username && (
@@ -45,7 +119,7 @@ const ProfileSection = ({
         )}
         
         <p className="text-gray-600 text-sm mt-2 max-w-xs text-center px-6">
-          {bio}
+          {bio || (isOwnProfile ? "Add a bio to tell others about yourself..." : "")}
         </p>
 
         <div className="flex justify-center space-x-12 mt-4 mb-6">
@@ -60,20 +134,34 @@ const ProfileSection = ({
         </div>
 
         <div className="flex space-x-3 px-6 w-full">
-          <Button className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium">
-            Follow
-          </Button>
-          <Button className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200">
-            Message
-          </Button>
-          <Button 
-            variant="outline"
-            size="icon"
-            className="rounded-md border border-gray-200"
-            onClick={() => navigate("/account-settings")}
-          >
-            <User className="h-5 w-5 text-gray-600" />
-          </Button>
+          {isOwnProfile ? (
+            <Button 
+              className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium"
+              onClick={() => navigate("/edit-profile")}
+            >
+              Edit Profile
+            </Button>
+          ) : (
+            <>
+              <Button className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium">
+                Follow
+              </Button>
+              <Button className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200">
+                Message
+              </Button>
+            </>
+          )}
+          
+          {isOwnProfile && (
+            <Button 
+              variant="outline"
+              size="icon"
+              className="rounded-md border border-gray-200"
+              onClick={() => navigate("/account-settings")}
+            >
+              <User className="h-5 w-5 text-gray-600" />
+            </Button>
+          )}
         </div>
       </div>
     </div>
