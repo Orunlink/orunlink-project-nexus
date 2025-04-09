@@ -57,7 +57,6 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    // @ts-ignore - The TypeScript definitions don't include the 'profiles' table yet
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -65,14 +64,13 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) return null;
-    return data;
+    return data as User;
   }
   
   async updateProfile(profile: Partial<User>): Promise<User> {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // @ts-ignore - The TypeScript definitions don't include the 'profiles' table yet
     const { data, error } = await supabase
       .from('profiles')
       .update(profile)
@@ -81,23 +79,21 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return data;
+    return data as User;
   }
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
       
     if (error) throw error;
-    return data || [];
+    return data as Project[];
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -105,7 +101,7 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) return null;
-    return data;
+    return data as Project;
   }
   
   async createProject(project: Partial<Project>): Promise<Project> {
@@ -117,7 +113,6 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data, error } = await supabase
       .from('projects')
       .insert(newProject)
@@ -125,11 +120,10 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return data;
+    return data as Project;
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { data: project, error } = await supabase
       .from('projects')
       .update(data)
@@ -138,11 +132,10 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return project;
+    return project as Project;
   }
   
   async deleteProject(id: string): Promise<void> {
-    // @ts-ignore - The TypeScript definitions don't include the 'projects' table yet
     const { error } = await supabase
       .from('projects')
       .delete()
@@ -153,7 +146,6 @@ export class SupabaseProvider implements ApiProvider {
 
   // Comments methods
   async getCommentsByProjectId(projectId: string): Promise<Comment[]> {
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("comments")
       .select("*")
@@ -161,11 +153,10 @@ export class SupabaseProvider implements ApiProvider {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return data as Comment[];
   }
 
   async addComment(projectId: string, userId: string, content: string): Promise<Comment | null> {
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("comments")
       .insert({
@@ -177,13 +168,12 @@ export class SupabaseProvider implements ApiProvider {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Comment;
   }
 
   // Join requests methods
   async createJoinRequest(projectId: string, requesterId: string, ownerId: string): Promise<JoinRequest | null> {
     // Check if a request already exists
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data: existingRequests } = await supabase
       .from("join_requests")
       .select("*")
@@ -195,7 +185,6 @@ export class SupabaseProvider implements ApiProvider {
       return existingRequests[0] as JoinRequest;
     }
 
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .insert({
@@ -209,14 +198,10 @@ export class SupabaseProvider implements ApiProvider {
     if (error) throw error;
 
     // Cast the status to the expected type since we know it's "pending" by default
-    return {
-      ...data,
-      status: data.status as "pending" | "accepted" | "rejected"
-    };
+    return data as JoinRequest;
   }
 
   async getPendingJoinRequestsForOwner(ownerId: string): Promise<JoinRequest[]> {
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .select("*")
@@ -225,15 +210,10 @@ export class SupabaseProvider implements ApiProvider {
 
     if (error) throw error;
 
-    // Cast the status for each item in the array
-    return data?.map(item => ({
-      ...item,
-      status: item.status as "pending" | "accepted" | "rejected"
-    })) || [];
+    return data as JoinRequest[];
   }
 
   async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> {
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .update({ status })
@@ -243,15 +223,10 @@ export class SupabaseProvider implements ApiProvider {
 
     if (error) throw error;
 
-    // Cast the status to the expected type
-    return {
-      ...data,
-      status: data.status as "pending" | "accepted" | "rejected"
-    };
+    return data as JoinRequest;
   }
 
   async checkExistingJoinRequest(projectId: string, userId: string): Promise<boolean> {
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from("join_requests")
       .select("*")
@@ -265,7 +240,6 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
@@ -273,14 +247,13 @@ export class SupabaseProvider implements ApiProvider {
       .order('created_at', { ascending: true });
       
     if (error) throw error;
-    return data || [];
+    return data as ChatMessage[];
   }
   
   async sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage> {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // @ts-ignore - The TypeScript definitions don't include the structure yet
     const { data, error } = await supabase
       .from('chat_messages')
       .insert({
@@ -293,7 +266,7 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return data;
+    return data as ChatMessage;
   }
   
   // Storage methods
