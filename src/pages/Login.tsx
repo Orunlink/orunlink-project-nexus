@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,8 +19,13 @@ const Login = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, isAuthenticated } = useAuth();
 
   useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/home');
+    }
+    
     const lockedUntil = localStorage.getItem("loginLockedUntil");
     if (lockedUntil) {
       const lockTimeMs = parseInt(lockedUntil, 10);
@@ -49,7 +55,7 @@ const Login = () => {
     if (attempts) {
       setLoginAttempts(parseInt(attempts, 10));
     }
-  }, []);
+  }, [isAuthenticated, navigate]);
 
   const sanitizeInput = (input: string): string => {
     return input.replace(/[<>&"']/g, (match) => {
@@ -69,7 +75,7 @@ const Login = () => {
     return emailRegex.test(email);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     setError("");
@@ -91,62 +97,39 @@ const Login = () => {
     
     const sanitizedEmail = sanitizeInput(email.trim());
     
-    console.log("Login attempt with:", sanitizedEmail);
-    
-    if (sanitizedEmail && password) {
-      if (sanitizedEmail === "admin@example.com" && password === "password123") {
-        localStorage.removeItem("loginAttempts");
-        setLoginAttempts(0);
+    try {
+      await signIn(sanitizedEmail, password);
+      localStorage.removeItem("loginAttempts");
+      setLoginAttempts(0);
+    } catch (error) {
+      console.error("Login error:", error);
+      
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+      localStorage.setItem("loginAttempts", newAttempts.toString());
+      
+      if (newAttempts >= 5) {
+        const lockDuration = 30;
+        const lockedUntil = Date.now() + (lockDuration * 1000);
+        localStorage.setItem("loginLockedUntil", lockedUntil.toString());
+        setIsLocked(true);
+        setLockTime(lockDuration);
+        setError(`Too many failed attempts. Account locked for ${lockDuration} seconds.`);
         
-        toast({
-          title: "Login successful",
-          description: "Welcome back to Orunlink!",
-        });
-        
-        document.cookie = `sessionToken=dummy-token; path=/; max-age=86400; secure; samesite=strict`;
-        
-        setTimeout(() => {
-          navigate("/home");
-        }, 500);
+        const interval = setInterval(() => {
+          setLockTime(prev => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setIsLocked(false);
+              localStorage.removeItem("loginLockedUntil");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
       } else {
-        toast({
-          title: "Login credentials",
-          description: "Use admin@example.com / password123 for this demo",
-        });
-        
-        const newAttempts = loginAttempts + 1;
-        setLoginAttempts(newAttempts);
-        localStorage.setItem("loginAttempts", newAttempts.toString());
-        
-        if (newAttempts >= 5) {
-          const lockDuration = 30;
-          const lockedUntil = Date.now() + (lockDuration * 1000);
-          localStorage.setItem("loginLockedUntil", lockedUntil.toString());
-          setIsLocked(true);
-          setLockTime(lockDuration);
-          setError(`Too many failed attempts. Account locked for ${lockDuration} seconds.`);
-          
-          const interval = setInterval(() => {
-            setLockTime(prev => {
-              if (prev <= 1) {
-                clearInterval(interval);
-                setIsLocked(false);
-                localStorage.removeItem("loginLockedUntil");
-                return 0;
-              }
-              return prev - 1;
-            });
-          }, 1000);
-        } else {
-          setError(`Invalid email or password. Use admin@example.com and password123 for this demo. ${5 - newAttempts} attempts remaining.`);
-        }
+        setError(`Invalid email or password. ${5 - newAttempts} attempts remaining.`);
       }
-    } else {
-      toast({
-        title: "Login failed",
-        description: "Please enter your email and password",
-        variant: "destructive",
-      });
     }
   };
 

@@ -1,155 +1,31 @@
-import { supabase } from "@/integrations/supabase/client";
 
-export interface Comment {
-  id: string;
-  project_id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
-  author?: {
-    name: string;
-    avatar: string;
-  };
-  likes?: number;
-  isLiked?: boolean;
-  replies_count?: number;
-}
+// Re-export from our API layer for backwards compatibility
+import { api, Comment, JoinRequest } from './api';
 
-export interface JoinRequest {
-  id: string;
-  project_id: string;
-  requester_id: string;
-  owner_id: string;
-  status: "pending" | "accepted" | "rejected";
-  created_at: string;
-}
-
-// Comments
-export const getCommentsByProjectId = async (projectId: string): Promise<Comment[]> => {
-  const { data, error } = await supabase
-    .from("comments")
-    .select("*")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching comments:", error);
-    return [];
-  }
-
-  return data || [];
+// Methods for Comments
+export const getCommentsByProjectId = (projectId: string) => {
+  return api.getCommentsByProjectId(projectId);
 };
 
-export const addComment = async (projectId: string, userId: string, content: string): Promise<Comment | null> => {
-  const { data, error } = await supabase
-    .from("comments")
-    .insert({
-      project_id: projectId,
-      user_id: userId,
-      content
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error adding comment:", error);
-    return null;
-  }
-
-  return data;
+export const addComment = (projectId: string, userId: string, content: string) => {
+  return api.addComment(projectId, userId, content);
 };
 
-// Join Requests
-export const createJoinRequest = async (projectId: string, requesterId: string, ownerId: string): Promise<JoinRequest | null> => {
-  // Check if a request already exists
-  const { data: existingRequests } = await supabase
-    .from("join_requests")
-    .select("*")
-    .eq("project_id", projectId)
-    .eq("requester_id", requesterId)
-    .eq("status", "pending");
-
-  if (existingRequests && existingRequests.length > 0) {
-    console.log("Request already exists");
-    return existingRequests[0] as JoinRequest;
-  }
-
-  const { data, error } = await supabase
-    .from("join_requests")
-    .insert({
-      project_id: projectId,
-      requester_id: requesterId,
-      owner_id: ownerId
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error creating join request:", error);
-    return null;
-  }
-
-  // Cast the status to the expected type since we know it's "pending" by default
-  return {
-    ...data,
-    status: data.status as "pending" | "accepted" | "rejected"
-  };
+// Methods for Join Requests
+export const createJoinRequest = (projectId: string, requesterId: string, ownerId: string) => {
+  return api.createJoinRequest(projectId, requesterId, ownerId);
 };
 
-export const getPendingJoinRequestsForOwner = async (ownerId: string): Promise<JoinRequest[]> => {
-  const { data, error } = await supabase
-    .from("join_requests")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .eq("status", "pending");
-
-  if (error) {
-    console.error("Error fetching join requests:", error);
-    return [];
-  }
-
-  // Cast the status for each item in the array
-  return data?.map(item => ({
-    ...item,
-    status: item.status as "pending" | "accepted" | "rejected"
-  })) || [];
+export const getPendingJoinRequestsForOwner = (ownerId: string) => {
+  return api.getPendingJoinRequestsForOwner(ownerId);
 };
 
-export const updateJoinRequestStatus = async (requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> => {
-  const { data, error } = await supabase
-    .from("join_requests")
-    .update({ status })
-    .eq("id", requestId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error updating join request:", error);
-    return null;
-  }
-
-  // Cast the status to the expected type
-  return {
-    ...data,
-    status: data.status as "pending" | "accepted" | "rejected"
-  };
+export const updateJoinRequestStatus = (requestId: string, status: "accepted" | "rejected") => {
+  return api.updateJoinRequestStatus(requestId, status);
 };
 
-// Check if user has already requested to join
-export const checkExistingJoinRequest = async (projectId: string, userId: string): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from("join_requests")
-    .select("*")
-    .eq("project_id", projectId)
-    .eq("requester_id", userId)
-    .eq("status", "pending");
-
-  if (error) {
-    console.error("Error checking join request:", error);
-    return false;
-  }
-
-  return data && data.length > 0;
+export const checkExistingJoinRequest = (projectId: string, userId: string) => {
+  return api.checkExistingJoinRequest(projectId, userId);
 };
 
 // Share project
@@ -172,3 +48,6 @@ export const shareProject = async (url: string, platform: string): Promise<boole
     return false;
   }
 };
+
+// Re-export types for backwards compatibility
+export type { Comment, JoinRequest };

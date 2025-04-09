@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Camera, Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Create = () => {
   const [title, setTitle] = useState("");
@@ -20,6 +21,7 @@ const Create = () => {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -59,17 +61,55 @@ const Create = () => {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Authentication error",
+        description: "You must be logged in to create a project",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Process tag string into array
+      const tagArray = tags
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+      
+      // Upload files to storage
+      const mediaUrls: string[] = [];
+      let mainImage = '';
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const result = await api.uploadFile('project_media', file);
+        mediaUrls.push(result.url);
+        
+        // Use first image as main image
+        if (i === 0) {
+          mainImage = result.url;
+        }
+      }
+      
+      // Create project in database
+      const project = await api.createProject({
+        title,
+        description,
+        category,
+        tags: tagArray,
+        main_image: mainImage,
+        media_urls: mediaUrls
+      });
       
       toast({
         title: "Project created!",
         description: "Your project has been published successfully",
       });
       
-      navigate('/projects');
+      navigate(`/project/${project.id}`);
     } catch (error) {
       console.error("Error creating project:", error);
       toast({

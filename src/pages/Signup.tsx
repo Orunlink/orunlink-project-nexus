@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, ArrowRight, AlertCircle, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +20,14 @@ const Signup = () => {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signUp, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+      navigate('/home');
+    }
+  }, [isAuthenticated, navigate]);
 
   // Sanitize input to prevent XSS attacks
   const sanitizeInput = (input: string): string => {
@@ -76,7 +85,7 @@ const Signup = () => {
     return "";
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -138,15 +147,15 @@ const Signup = () => {
       localStorage.setItem("signupAttempts", "1");
     }
 
-    // Mock signup success - in a real app, this would call an API
-    setTimeout(() => {
-      toast({
-        title: "Account created",
-        description: "Welcome to Orunlink! You can now log in.",
+    try {
+      await signUp(sanitizedEmail, password, {
+        full_name: sanitizedName,
       });
-      navigate("/login");
+    } catch (error: any) {
+      setError(error.message || "Error creating account");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Login from "./pages/Login";
@@ -30,30 +32,132 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/project/:projectId" element={<ProjectDetail />} />
-          <Route path="/project-chat/:projectId" element={<ProjectChat />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/create" element={<Create />} />
-          <Route path="/account-settings" element={<AccountSettings />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/notification-settings" element={<NotificationSettings />} />
-          <Route path="/privacy-security" element={<PrivacySecurity />} />
-          <Route path="/help-support" element={<HelpSupport />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-        <Sonner />
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/welcome" element={<Welcome />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            
+            {/* Protected routes */}
+            <Route 
+              path="/home" 
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/project/:projectId" 
+              element={
+                <ProtectedRoute>
+                  <ProjectDetail />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/project-chat/:projectId" 
+              element={
+                <ProtectedRoute>
+                  <ProjectChat />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notifications" 
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/messages" 
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/explore" 
+              element={
+                <ProtectedRoute>
+                  <Explore />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/projects" 
+              element={
+                <ProtectedRoute>
+                  <Projects />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/create" 
+              element={
+                <ProtectedRoute>
+                  <Create />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/account-settings" 
+              element={
+                <ProtectedRoute>
+                  <AccountSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/edit-profile" 
+              element={
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notification-settings" 
+              element={
+                <ProtectedRoute>
+                  <NotificationSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/privacy-security" 
+              element={
+                <ProtectedRoute>
+                  <PrivacySecurity />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/help-support" 
+              element={
+                <ProtectedRoute>
+                  <HelpSupport />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+          <Sonner />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
