@@ -25,6 +25,7 @@ import EditProfile from "./pages/EditProfile";
 import NotificationSettings from "./pages/NotificationSettings";
 import PrivacySecurity from "./pages/PrivacySecurity";
 import HelpSupport from "./pages/HelpSupport";
+import Moderation from "./pages/Moderation";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/moderation" element={<Moderation />} />
             
             {/* Protected routes */}
             <Route 
