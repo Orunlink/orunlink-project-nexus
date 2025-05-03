@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, User } from '@/services/api';
@@ -11,6 +12,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData?: Partial<User>) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<User>) => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,28 +23,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const session = await api.getSession();
-        if (session?.user) {
+  const refreshUser = async () => {
+    try {
+      const session = await api.getSession();
+      if (session?.user) {
+        const profile = await api.getProfile(session.user.id);
+        if (profile) {
+          // Combine auth user data with profile data
+          setUser({
+            ...session.user,
+            ...profile
+          });
+        } else {
           setUser(session.user);
         }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setIsLoading(false);
+      } else {
+        setUser(null);
       }
-    };
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    checkSession();
+  useEffect(() => {
+    refreshUser();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const session = await api.signIn(email, password);
-      setUser(session.user);
+      await api.signIn(email, password);
+      await refreshUser();
+      
       toast({
         title: 'Login successful!',
         description: 'Welcome back to Orunlink',
@@ -121,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         signOut,
         updateProfile,
+        refreshUser,
       }}
     >
       {children}
