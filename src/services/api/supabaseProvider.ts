@@ -57,7 +57,7 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    // @ts-ignore - Ignore type error with "profiles" table
+    // @ts-ignore - Ignore type error with "profiles" table as it exists in DB but not in types
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -315,3 +315,4 @@ export class SupabaseProvider implements ApiProvider {
 
 // Export singleton instance
 export const supabaseProvider = new SupabaseProvider();
+
