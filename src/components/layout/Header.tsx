@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Inbox, Bell, LogIn, LogOut, User as UserIcon } from "lucide-react";
+import { Inbox, Bell, LogIn, LogOut } from "lucide-react";
 import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,31 +40,14 @@ const Header = () => {
                 <Inbox className="w-6 h-6" />
               </button>
             </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={user?.avatar_url || ''} alt={user?.full_name || 'User'} />
-                    <AvatarFallback className="bg-orunlink-light text-white">
-                      {user?.full_name?.[0] || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem>
-                  <Link to="/profile" className="flex items-center w-full">
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:bg-white/10"
+              onClick={() => signOut()}
+            >
+              <LogOut className="w-5 h-5 mr-1" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
           </>
         ) : (
           <Link to="/login">
