@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
 
@@ -56,7 +57,7 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    // @ts-ignore - Ignore type error with "profiles" table as it exists in DB but not in types
+    // @ts-ignore - Bypass TypeScript checking for profiles table
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -71,7 +72,7 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // @ts-ignore - Ignore type error with "profiles" table
+    // @ts-ignore - Bypass TypeScript checking for profiles table
     const { data, error } = await supabase
       .from('profiles')
       .update(profile)
@@ -85,18 +86,18 @@ export class SupabaseProvider implements ApiProvider {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    // @ts-ignore - Ignore type error with "projects" table
+    // @ts-ignore - Bypass TypeScript checking for projects table
     const { data, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
       
     if (error) throw error;
-    return data as Project[];
+    return data as unknown as Project[];
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    // @ts-ignore - Ignore type error with "projects" table
+    // @ts-ignore - Bypass TypeScript checking for projects table
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -104,7 +105,7 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) return null;
-    return data as Project;
+    return data as unknown as Project;
   }
   
   async createProject(project: Partial<Project>): Promise<Project> {
@@ -116,7 +117,7 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    // @ts-ignore - Ignore type error with "projects" table
+    // @ts-ignore - Bypass TypeScript checking for projects table
     const { data, error } = await supabase
       .from('projects')
       .insert(newProject)
@@ -124,11 +125,11 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return data as Project;
+    return data as unknown as Project;
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    // @ts-ignore - Ignore type error with "projects" table
+    // @ts-ignore - Bypass TypeScript checking for projects table
     const { data: project, error } = await supabase
       .from('projects')
       .update(data)
@@ -137,11 +138,11 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return project as Project;
+    return project as unknown as Project;
   }
   
   async deleteProject(id: string): Promise<void> {
-    // @ts-ignore - Ignore type error with "projects" table
+    // @ts-ignore - Bypass TypeScript checking for projects table
     const { error } = await supabase
       .from('projects')
       .delete()
@@ -247,7 +248,7 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    // @ts-ignore - Ignore type error with "chat_messages" table
+    // @ts-ignore - Bypass TypeScript checking for chat_messages table
     const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
@@ -255,14 +256,14 @@ export class SupabaseProvider implements ApiProvider {
       .order('created_at', { ascending: true });
       
     if (error) throw error;
-    return data as ChatMessage[];
+    return data as unknown as ChatMessage[];
   }
   
   async sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage> {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // @ts-ignore - Ignore type error with "chat_messages" table
+    // @ts-ignore - Bypass TypeScript checking for chat_messages table
     const { data, error } = await supabase
       .from('chat_messages')
       .insert({
@@ -275,7 +276,7 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return data as ChatMessage;
+    return data as unknown as ChatMessage;
   }
   
   // Storage methods
@@ -315,3 +316,4 @@ export class SupabaseProvider implements ApiProvider {
 
 // Export singleton instance
 export const supabaseProvider = new SupabaseProvider();
+
