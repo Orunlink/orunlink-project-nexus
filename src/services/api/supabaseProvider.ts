@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
 
@@ -186,6 +185,7 @@ export class SupabaseProvider implements ApiProvider {
       .select("*")
       .eq("project_id", projectId)
       .eq("requester_id", requesterId)
+      .eq("owner_id", ownerId)
       .eq("status", "pending");
 
     if (existingRequests && existingRequests.length > 0) {
@@ -315,4 +315,3 @@ export class SupabaseProvider implements ApiProvider {
 
 // Export singleton instance
 export const supabaseProvider = new SupabaseProvider();
-

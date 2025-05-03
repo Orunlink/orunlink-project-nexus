@@ -78,13 +78,20 @@ const Projects = () => {
   const handleProjectClick = (projectId: string) => {
     navigate(`/project-chat/${projectId}`);
   };
+  
+  const handleCreateProject = () => {
+    navigate("/create");
+  };
 
   return (
     <Layout hideNavbar={true} hideFooter={true}>
       <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Projects</h1>
-          <Button className="bg-green-600 hover:bg-green-700 rounded-full">
+          <Button 
+            className="bg-green-600 hover:bg-green-700 rounded-full"
+            onClick={handleCreateProject}
+          >
             <Plus className="mr-1 h-5 w-5" />
             New Project
           </Button>
