@@ -22,13 +22,18 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async signIn(email: string, password: string): Promise<AuthSession> {
+    console.log("Attempting to sign in with:", { email });
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase auth error:", error);
+      throw error;
+    }
     
+    console.log("Sign in successful:", data);
     return {
       user: data.user,
       token: data.session?.access_token
@@ -57,55 +62,51 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
       
     if (error) return null;
-    return data as User;
+    return data as unknown as User;
   }
   
   async updateProfile(profile: Partial<User>): Promise<User> {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .update(profile)
       .eq('id', session.user.id)
       .select()
       .single();
       
     if (error) throw error;
-    return data as User;
+    return data as unknown as User;
   }
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('projects' as any)
+      .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
       
     if (error) throw error;
-    return data as Project[];
+    return data as unknown as Project[];
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('projects' as any)
+      .from('projects')
       .select('*')
       .eq('id', id)
       .single();
       
     if (error) return null;
-    return data as Project;
+    return data as unknown as Project;
   }
   
   async createProject(project: Partial<Project>): Promise<Project> {
@@ -117,34 +118,31 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('projects' as any)
+      .from('projects')
       .insert(newProject)
       .select()
       .single();
       
     if (error) throw error;
-    return data as Project;
+    return data as unknown as Project;
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    // Using type assertion for tables not defined in the schema
     const { data: project, error } = await supabase
-      .from('projects' as any)
+      .from('projects')
       .update(data)
       .eq('id', id)
       .select()
       .single();
       
     if (error) throw error;
-    return project as Project;
+    return project as unknown as Project;
   }
   
   async deleteProject(id: string): Promise<void> {
-    // Using type assertion for tables not defined in the schema
     const { error } = await supabase
-      .from('projects' as any)
+      .from('projects')
       .delete()
       .eq('id', id);
       
@@ -248,24 +246,22 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('chat_messages' as any)
+      .from('chat_messages')
       .select('*')
       .eq('project_id', projectId)
       .order('created_at', { ascending: true });
       
     if (error) throw error;
-    return data as ChatMessage[];
+    return data as unknown as ChatMessage[];
   }
   
   async sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage> {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // Using type assertion for tables not defined in the schema
     const { data, error } = await supabase
-      .from('chat_messages' as any)
+      .from('chat_messages')
       .insert({
         project_id: projectId,
         user_id: session.user.id,
@@ -276,7 +272,7 @@ export class SupabaseProvider implements ApiProvider {
       .single();
       
     if (error) throw error;
-    return data as ChatMessage;
+    return data as unknown as ChatMessage;
   }
   
   // Storage methods

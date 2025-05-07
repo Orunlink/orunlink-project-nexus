@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,16 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, isAuthenticated } = useAuth();
+  
+  // Demo credentials for easy login during development
+  const [showDemoHelper, setShowDemoHelper] = useState(true);
+  const demoEmail = "demo@orunlink.com";
+  const demoPassword = "password123";
+
+  const handleUseDemoAccount = () => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -98,10 +109,11 @@ const Login = () => {
     const sanitizedEmail = sanitizeInput(email.trim());
     
     try {
+      console.log("Submitting login with:", { email: sanitizedEmail });
       await signIn(sanitizedEmail, password);
       localStorage.removeItem("loginAttempts");
       setLoginAttempts(0);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       
       const newAttempts = loginAttempts + 1;
@@ -141,6 +153,38 @@ const Login = () => {
             <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
             <p className="mt-2 text-gray-600">Sign in to your Orunlink account</p>
           </div>
+          
+          {showDemoHelper && (
+            <Alert className="mb-4 bg-blue-50 border-blue-200">
+              <div className="flex flex-col space-y-2">
+                <p className="text-sm text-blue-800">
+                  For demo purposes, you can use these credentials:
+                </p>
+                <div className="flex justify-between items-center">
+                  <div className="text-xs">
+                    <div><strong>Email:</strong> {demoEmail}</div>
+                    <div><strong>Password:</strong> {demoPassword}</div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
+                    onClick={handleUseDemoAccount}
+                  >
+                    Use Demo Account
+                  </Button>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  className="text-xs self-end"
+                  onClick={() => setShowDemoHelper(false)}
+                >
+                  Hide
+                </Button>
+              </div>
+            </Alert>
+          )}
           
           {error && (
             <Alert variant="destructive" className="mb-4">
