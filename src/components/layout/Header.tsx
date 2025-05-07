@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Inbox, Bell, LogIn, LogOut, Shield } from "lucide-react";
+import { Inbox, Bell, LogIn, Shield } from "lucide-react";
 import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,14 +67,6 @@ const Header = () => {
                 <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10"
-              onClick={() => signOut()}
-            >
-              <LogOut className="w-5 h-5 mr-1" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
           </>
         ) : (
           <Link to="/login">
