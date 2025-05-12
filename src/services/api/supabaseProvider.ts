@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
+import { PostgrestQueryBuilder } from "@supabase/supabase-js";
 
 export class SupabaseProvider implements ApiProvider {
   // Auth methods
@@ -62,8 +63,11 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('profiles')
+    // Use type assertion to handle profiles table not in schema
+    const queryBuilder = supabase
+      .from('profiles') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
       .select('*')
       .eq('id', userId)
       .single();
@@ -76,8 +80,11 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    const { data, error } = await supabase
-      .from('profiles')
+    // Use type assertion to handle profiles table not in schema
+    const queryBuilder = supabase
+      .from('profiles') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
       .update(profile)
       .eq('id', session.user.id)
       .select()
@@ -89,8 +96,11 @@ export class SupabaseProvider implements ApiProvider {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    const { data, error } = await supabase
-      .from('projects')
+    // Use type assertion to handle projects table not in schema
+    const queryBuilder = supabase
+      .from('projects') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
       .select('*')
       .order('created_at', { ascending: false });
       
@@ -99,8 +109,11 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    const { data, error } = await supabase
-      .from('projects')
+    // Use type assertion to handle projects table not in schema
+    const queryBuilder = supabase
+      .from('projects') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
       .select('*')
       .eq('id', id)
       .single();
@@ -118,9 +131,12 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    const { data, error } = await supabase
-      .from('projects')
-      .insert(newProject)
+    // Use type assertion to handle projects table not in schema
+    const queryBuilder = supabase
+      .from('projects') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
+      .insert(newProject as any)
       .select()
       .single();
       
@@ -129,9 +145,12 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    const { data: project, error } = await supabase
-      .from('projects')
-      .update(data)
+    // Use type assertion to handle projects table not in schema
+    const queryBuilder = supabase
+      .from('projects') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data: project, error } = await queryBuilder
+      .update(data as any)
       .eq('id', id)
       .select()
       .single();
@@ -141,8 +160,11 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async deleteProject(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('projects')
+    // Use type assertion to handle projects table not in schema
+    const queryBuilder = supabase
+      .from('projects') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { error } = await queryBuilder
       .delete()
       .eq('id', id);
       
@@ -246,8 +268,11 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    const { data, error } = await supabase
-      .from('chat_messages')
+    // Use type assertion to handle chat_messages table not in schema
+    const queryBuilder = supabase
+      .from('chat_messages') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
       .select('*')
       .eq('project_id', projectId)
       .order('created_at', { ascending: true });
@@ -260,14 +285,17 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    const { data, error } = await supabase
-      .from('chat_messages')
+    // Use type assertion to handle chat_messages table not in schema
+    const queryBuilder = supabase
+      .from('chat_messages') as unknown as PostgrestQueryBuilder<any, any>;
+      
+    const { data, error } = await queryBuilder
       .insert({
         project_id: projectId,
         user_id: session.user.id,
         content,
         attachments
-      })
+      } as any)
       .select()
       .single();
       
