@@ -62,12 +62,11 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    // Use type assertion for "profiles" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await (supabase
+      .from('profiles') as any)
       .select('*')
       .eq('id', userId)
-      .single() as any;
+      .single();
       
     if (error) return null;
     return data as User;
@@ -77,13 +76,12 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // Use type assertion for "profiles" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('profiles')
+    const { data, error } = await (supabase
+      .from('profiles') as any)
       .update(profile)
       .eq('id', session.user.id)
       .select()
-      .single() as any;
+      .single();
       
     if (error) throw error;
     return data as User;
@@ -91,23 +89,21 @@ export class SupabaseProvider implements ApiProvider {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    // Use type assertion for "projects" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('projects')
+    const { data, error } = await (supabase
+      .from('projects') as any)
       .select('*')
-      .order('created_at', { ascending: false }) as any;
+      .order('created_at', { ascending: false });
       
     if (error) throw error;
-    return data as unknown as Project[];
+    return data as Project[];
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    // Use type assertion for "projects" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('projects')
+    const { data, error } = await (supabase
+      .from('projects') as any)
       .select('*')
       .eq('id', id)
-      .single() as any;
+      .single();
       
     if (error) return null;
     return data as Project;
@@ -122,36 +118,33 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    // Use type assertion for "projects" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('projects')
-      .insert(newProject)
+    const { data, error } = await (supabase
+      .from('projects') as any)
+      .insert(newProject as any)
       .select()
-      .single() as any;
+      .single();
       
     if (error) throw error;
     return data as Project;
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    // Use type assertion for "projects" table that isn't in the DB types
-    const { data: project, error } = await supabase
-      .from('projects')
+    const { data: project, error } = await (supabase
+      .from('projects') as any)
       .update(data)
       .eq('id', id)
       .select()
-      .single() as any;
+      .single();
       
     if (error) throw error;
     return project as Project;
   }
   
   async deleteProject(id: string): Promise<void> {
-    // Use type assertion for "projects" table that isn't in the DB types
-    const { error } = await supabase
-      .from('projects')
+    const { error } = await (supabase
+      .from('projects') as any)
       .delete()
-      .eq('id', id) as any;
+      .eq('id', id);
       
     if (error) throw error;
   }
@@ -253,12 +246,11 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    // Use type assertion for "chat_messages" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('chat_messages')
+    const { data, error } = await (supabase
+      .from('chat_messages') as any)
       .select('*')
       .eq('project_id', projectId)
-      .order('created_at', { ascending: true }) as any;
+      .order('created_at', { ascending: true });
       
     if (error) throw error;
     return data as ChatMessage[];
@@ -268,9 +260,8 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // Use type assertion for "chat_messages" table that isn't in the DB types
-    const { data, error } = await supabase
-      .from('chat_messages')
+    const { data, error } = await (supabase
+      .from('chat_messages') as any)
       .insert({
         project_id: projectId,
         user_id: session.user.id,
@@ -278,7 +269,7 @@ export class SupabaseProvider implements ApiProvider {
         attachments
       })
       .select()
-      .single() as any;
+      .single();
       
     if (error) throw error;
     return data as ChatMessage;
