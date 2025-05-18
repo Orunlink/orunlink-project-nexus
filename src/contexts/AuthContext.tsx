@@ -19,24 +19,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const refreshUser = async () => {
     try {
+      setIsLoading(true);
       const session = await api.getSession();
       if (session?.user) {
-        const profile = await api.getProfile(session.user.id);
-        if (profile) {
-          // Combine auth user data with profile data
-          setUser({
-            ...session.user,
-            ...profile
-          });
-        } else {
-          setUser(session.user);
-        }
+        setUser(session.user);
       } else {
         setUser(null);
       }
@@ -49,19 +41,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Run once on mount to check if user is already logged in
     refreshUser();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      await api.signIn(email, password);
-      await refreshUser();
+      const session = await api.signIn(email, password);
+      setUser(session.user);
       
       toast({
         title: 'Login successful!',
         description: 'Welcome back to Orunlink',
       });
+      
       navigate('/home');
     } catch (error: any) {
       console.error('Error signing in:', error);
@@ -82,14 +76,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await api.signUp(email, password, userData);
       
       if (result?.user) {
+        setUser(result.user);
         toast({
           title: 'Account created!',
-          description: 'You can now sign in with your new account',
+          description: 'You are now logged in',
         });
+        navigate('/home');
       } else {
         toast({
           title: 'Account created!',
-          description: 'Please check your email to verify your account',
+          description: 'You can now sign in with your new account',
         });
       }
     } catch (error: any) {
@@ -117,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: Partial<User>) => {
     try {
+      setIsLoading(true);
       const updatedProfile = await api.updateProfile(data);
       setUser(prev => prev ? { ...prev, ...updatedProfile } : updatedProfile);
       toast({
@@ -130,6 +127,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: 'destructive',
       });
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 

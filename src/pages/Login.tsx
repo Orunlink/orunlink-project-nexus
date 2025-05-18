@@ -14,16 +14,13 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockTime, setLockTime] = useState(0);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signIn, signUp, isAuthenticated } = useAuth();
   
-  // Demo credentials for easy login during development
+  // Demo credentials for easy login
   const [showDemoHelper, setShowDemoHelper] = useState(true);
   const demoEmail = "demo@orunlink.com";
   const demoPassword = "password123";
@@ -32,42 +29,16 @@ const Login = () => {
     setEmail(demoEmail);
     setPassword(demoPassword);
     
-    // Check if demo account exists, if not create it
     try {
       setIsLoading(true);
       await signIn(demoEmail, demoPassword);
+      toast({
+        title: "Success!",
+        description: "Logged in with demo account",
+      });
       navigate('/home');
-    } catch (error) {
-      console.log("Demo account login failed, attempting to create it");
-      try {
-        // Create the demo account if login fails
-        await signUp(demoEmail, demoPassword, {
-          full_name: "Demo User",
-          username: "demouser"
-        });
-        
-        toast({
-          title: "Demo account created!",
-          description: "Login now to continue",
-        });
-        
-        // Try logging in again after a short delay
-        setTimeout(async () => {
-          try {
-            await signIn(demoEmail, demoPassword);
-            navigate('/home');
-          } catch (e) {
-            setError("Could not log in with demo account. Please try again.");
-          }
-        }, 1500);
-        
-      } catch (signupError: any) {
-        if (signupError.message.includes("already registered")) {
-          setError("Demo account exists but credentials might be incorrect. Please contact support.");
-        } else {
-          setError("Could not create demo account. Please try again later.");
-        }
-      }
+    } catch (error: any) {
+      setError(error.message || "Could not log in with demo account");
     } finally {
       setIsLoading(false);
     }
@@ -77,127 +48,30 @@ const Login = () => {
     if (isAuthenticated) {
       navigate('/home');
     }
-    
-    const lockedUntil = localStorage.getItem("loginLockedUntil");
-    if (lockedUntil) {
-      const lockTimeMs = parseInt(lockedUntil, 10);
-      if (lockTimeMs > Date.now()) {
-        setIsLocked(true);
-        setLockTime(Math.ceil((lockTimeMs - Date.now()) / 1000));
-        
-        const interval = setInterval(() => {
-          setLockTime(prev => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              setIsLocked(false);
-              localStorage.removeItem("loginLockedUntil");
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-        
-        return () => clearInterval(interval);
-      } else {
-        localStorage.removeItem("loginLockedUntil");
-      }
-    }
-    
-    // Reset login attempts after 5 minutes
-    const lastAttemptTime = localStorage.getItem("lastLoginAttemptTime");
-    if (lastAttemptTime) {
-      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-      if (parseInt(lastAttemptTime, 10) < fiveMinutesAgo) {
-        localStorage.removeItem("loginAttempts");
-        setLoginAttempts(0);
-      }
-    }
-    
-    const attempts = localStorage.getItem("loginAttempts");
-    if (attempts) {
-      setLoginAttempts(parseInt(attempts, 10));
-    }
   }, [isAuthenticated, navigate]);
-
-  const sanitizeInput = (input: string): string => {
-    return input.replace(/[<>&"']/g, (match) => {
-      switch (match) {
-        case '<': return '&lt;';
-        case '>': return '&gt;';
-        case '&': return '&amp;';
-        case '"': return '&quot;';
-        case "'": return '&#x27;';
-        default: return match;
-      }
-    });
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     setError("");
     
-    if (isLocked) {
-      setError(`Too many failed attempts. Try again in ${lockTime} seconds.`);
-      return;
-    }
-    
     if (!email.trim() || !password.trim()) {
       setError("Please enter both email and password");
       return;
     }
     
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address");
-      return;
-    }
-    
-    const sanitizedEmail = sanitizeInput(email.trim());
-    
     try {
       setIsLoading(true);
-      console.log("Submitting login with:", { email: sanitizedEmail });
-      await signIn(sanitizedEmail, password);
-      localStorage.removeItem("loginAttempts");
-      localStorage.removeItem("lastLoginAttemptTime");
-      setLoginAttempts(0);
+      console.log("Submitting login with:", { email });
+      await signIn(email.trim(), password);
+      toast({
+        title: "Login successful!",
+        description: "Welcome to Orunlink",
+      });
+      navigate('/home');
     } catch (error: any) {
       console.error("Login error:", error);
-      
-      // Store last attempt time
-      localStorage.setItem("lastLoginAttemptTime", Date.now().toString());
-      
-      const newAttempts = loginAttempts + 1;
-      setLoginAttempts(newAttempts);
-      localStorage.setItem("loginAttempts", newAttempts.toString());
-      
-      if (newAttempts >= 5) {
-        const lockDuration = 30;
-        const lockedUntil = Date.now() + (lockDuration * 1000);
-        localStorage.setItem("loginLockedUntil", lockedUntil.toString());
-        setIsLocked(true);
-        setLockTime(lockDuration);
-        setError(`Too many failed attempts. Account locked for ${lockDuration} seconds.`);
-        
-        const interval = setInterval(() => {
-          setLockTime(prev => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              setIsLocked(false);
-              localStorage.removeItem("loginLockedUntil");
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      } else {
-        setError(`Invalid email or password. ${5 - newAttempts} attempts remaining.`);
-      }
+      setError(error.message || "Invalid email or password");
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +104,7 @@ const Login = () => {
                     onClick={handleUseDemoAccount}
                     disabled={isLoading}
                   >
-                    {isLoading ? "Creating..." : "Use Demo Account"}
+                    {isLoading ? "Logging in..." : "Use Demo Account"}
                   </Button>
                 </div>
                 <Button 
@@ -265,7 +139,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLocked || isLoading}
+                disabled={isLoading}
                 autoComplete="username"
               />
             </div>
@@ -284,7 +158,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isLocked || isLoading}
+                disabled={isLoading}
                 autoComplete="current-password"
               />
             </div>
@@ -294,7 +168,7 @@ const Login = () => {
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                disabled={isLocked || isLoading}
+                disabled={isLoading}
               />
               <Label htmlFor="remember" className="text-sm">Remember me for 30 days</Label>
             </div>
@@ -302,9 +176,9 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-orunlink-purple hover:bg-orunlink-dark"
-              disabled={isLocked || isLoading}
+              disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : isLocked ? `Locked (${lockTime}s)` : "Sign in"}
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
           
