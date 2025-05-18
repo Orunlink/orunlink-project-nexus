@@ -62,8 +62,8 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    const { data, error } = await (supabase
-      .from('profiles') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('profiles') as any)
       .select('*')
       .eq('id', userId)
       .single();
@@ -76,8 +76,8 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    const { data, error } = await (supabase
-      .from('profiles') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('profiles') as any)
       .update(profile)
       .eq('id', session.user.id)
       .select()
@@ -89,8 +89,8 @@ export class SupabaseProvider implements ApiProvider {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    const { data, error } = await (supabase
-      .from('projects') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('projects') as any)
       .select('*')
       .order('created_at', { ascending: false });
       
@@ -99,8 +99,8 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    const { data, error } = await (supabase
-      .from('projects') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('projects') as any)
       .select('*')
       .eq('id', id)
       .single();
@@ -118,8 +118,8 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    const { data, error } = await (supabase
-      .from('projects') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('projects') as any)
       .insert(newProject as any)
       .select()
       .single();
@@ -129,8 +129,8 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    const { data: project, error } = await (supabase
-      .from('projects') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data: project, error } = await (supabase.from('projects') as any)
       .update(data)
       .eq('id', id)
       .select()
@@ -141,8 +141,8 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async deleteProject(id: string): Promise<void> {
-    const { error } = await (supabase
-      .from('projects') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { error } = await (supabase.from('projects') as any)
       .delete()
       .eq('id', id);
       
@@ -246,8 +246,8 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    const { data, error } = await (supabase
-      .from('chat_messages') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('chat_messages') as any)
       .select('*')
       .eq('project_id', projectId)
       .order('created_at', { ascending: true });
@@ -260,8 +260,8 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    const { data, error } = await (supabase
-      .from('chat_messages') as any)
+    // Use type assertion with 'any' to bypass TypeScript's type checking
+    const { data, error } = await (supabase.from('chat_messages') as any)
       .insert({
         project_id: projectId,
         user_id: session.user.id,
