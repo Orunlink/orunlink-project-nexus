@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { User, Send, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { addComment, getCommentsByProjectId, Comment } from "@/services/projectService";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProjectCommentSectionProps {
@@ -32,19 +30,11 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
 
     fetchComments();
 
-    // Set up realtime subscription for new comments
-    const channel = supabase
-      .channel('public:comments')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'comments', filter: `project_id=eq.${projectId}` },
-        (payload) => {
-          fetchComments();
-        }
-      )
-      .subscribe();
-
+    // Set up interval to poll for new comments (since we're using mock data)
+    const intervalId = setInterval(fetchComments, 10000);
+    
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
   }, [projectId]);
 
@@ -61,6 +51,10 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
           title: "Comment added",
           description: "Your comment has been posted successfully.",
         });
+        
+        // Refresh comments after posting
+        const commentsData = await getCommentsByProjectId(projectId);
+        setComments(commentsData);
       }
     } catch (error) {
       console.error("Error posting comment:", error);
