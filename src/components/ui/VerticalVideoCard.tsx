@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Heart, MessageSquare, Share2, Bookmark, Handshake, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -12,6 +13,7 @@ import {
   DrawerTitle,
   DrawerClose
 } from "@/components/ui/drawer";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Project {
   id: string;
@@ -39,13 +41,32 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
   const [currentLikes, setCurrentLikes] = useState(project.likes);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleLike = () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to like this project",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLiked(!isLiked);
     setCurrentLikes(isLiked ? currentLikes - 1 : currentLikes + 1);
   };
 
   const handleSave = () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save this project",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSaved(!isSaved);
     toast({
       title: isSaved ? "Removed from favorites" : "Added to favorites",
@@ -81,6 +102,15 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
   };
 
   const handleCommentToggle = () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to view and post comments",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setShowComments(!showComments);
   };
 

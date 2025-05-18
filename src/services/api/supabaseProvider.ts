@@ -1,6 +1,11 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
+import type { Database } from "@/integrations/supabase/types";
+
+// Define the type for our Supabase client with any to bypass strict typing
+// This is a temporary solution until the database schema is fully defined
+type SupabaseClient = typeof supabase;
 
 export class SupabaseProvider implements ApiProvider {
   // Auth methods
@@ -62,8 +67,9 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('profiles') as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
@@ -76,8 +82,9 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('profiles') as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('profiles')
       .update(profile)
       .eq('id', session.user.id)
       .select()
@@ -89,8 +96,9 @@ export class SupabaseProvider implements ApiProvider {
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('projects') as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
       
@@ -99,8 +107,9 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('projects') as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('projects')
       .select('*')
       .eq('id', id)
       .single();
@@ -118,9 +127,10 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('projects') as any)
-      .insert(newProject as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('projects')
+      .insert(newProject)
       .select()
       .single();
       
@@ -129,8 +139,9 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data: project, error } = await (supabase.from('projects') as any)
+    const client = supabase as any;
+    const { data: project, error } = await client
+      .from('projects')
       .update(data)
       .eq('id', id)
       .select()
@@ -141,8 +152,9 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async deleteProject(id: string): Promise<void> {
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { error } = await (supabase.from('projects') as any)
+    const client = supabase as any;
+    const { error } = await client
+      .from('projects')
       .delete()
       .eq('id', id);
       
@@ -246,8 +258,9 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('chat_messages') as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('chat_messages')
       .select('*')
       .eq('project_id', projectId)
       .order('created_at', { ascending: true });
@@ -260,8 +273,9 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    // Use type assertion with 'any' to bypass TypeScript's type checking
-    const { data, error } = await (supabase.from('chat_messages') as any)
+    const client = supabase as any;
+    const { data, error } = await client
+      .from('chat_messages')
       .insert({
         project_id: projectId,
         user_id: session.user.id,

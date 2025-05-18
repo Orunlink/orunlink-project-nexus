@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { User, Send, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { addComment, getCommentsByProjectId, Comment } from "@/services/projectService";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProjectCommentSectionProps {
   projectId: string;
@@ -14,32 +16,18 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
-
-  // Get current user
-  useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    };
-
-    getUser();
-
-    const authListener = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => {
-      authListener.data.subscription.unsubscribe();
-    };
-  }, []);
+  const { user } = useAuth();
 
   // Fetch comments
   useEffect(() => {
     const fetchComments = async () => {
-      const commentsData = await getCommentsByProjectId(projectId);
-      setComments(commentsData);
+      try {
+        const commentsData = await getCommentsByProjectId(projectId);
+        setComments(commentsData);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      }
     };
 
     fetchComments();
@@ -179,10 +167,10 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-2">
         <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-full overflow-hidden">
-            {user?.avatar ? (
+            {user?.avatar_url ? (
               <img
-                src={user.avatar}
-                alt={user.name}
+                src={user.avatar_url}
+                alt={user.full_name || user.email || "User"}
                 className="w-full h-full object-cover"
               />
             ) : (

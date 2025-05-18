@@ -1,9 +1,13 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import VerticalVideoCard from "@/components/ui/VerticalVideoCard";
+import { api } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
+// Fallback mock data when API fails or returns empty
 const mockProjects = [
   {
     id: "1",
@@ -42,49 +46,52 @@ const mockProjects = [
     likes: 201,
     comments: 42,
   },
-  {
-    id: "4",
-    title: "Fitness Tracking App",
-    description: "Mobile application for tracking workouts, nutrition, and health metrics.",
-    imageUrl: "https://images.unsplash.com/photo-1594882645126-14020914d58d",
-    owner: {
-      name: "Emma Taylor",
-      avatar: "https://randomuser.me/api/portraits/women/22.jpg",
-    },
-    likes: 156,
-    comments: 28,
-  },
-  {
-    id: "5",
-    title: "Cryptocurrency Exchange Platform",
-    description: "Secure platform for trading cryptocurrencies with real-time market data.",
-    imageUrl: "https://images.unsplash.com/photo-1639322537231-2f206e06af84",
-    owner: {
-      name: "Michael Lee",
-      avatar: "https://randomuser.me/api/portraits/men/42.jpg",
-    },
-    likes: 178,
-    comments: 31,
-    isVideo: true,
-  },
-  {
-    id: "6",
-    title: "Social Media Analytics Tool",
-    description: "Tool for tracking and analyzing social media performance across platforms.",
-    imageUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7",
-    owner: {
-      name: "Olivia Wilson",
-      avatar: "https://randomuser.me/api/portraits/women/57.jpg",
-    },
-    likes: 112,
-    comments: 19,
-  },
 ];
 
 const Home = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState(mockProjects);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setIsLoading(true);
+        const apiProjects = await api.getProjects();
+        
+        if (apiProjects && apiProjects.length > 0) {
+          // Transform API projects to the format expected by VerticalVideoCard
+          const formattedProjects = apiProjects.map(project => ({
+            id: project.id,
+            title: project.title || "Untitled Project",
+            description: project.description || "No description provided",
+            imageUrl: project.main_image || "https://images.unsplash.com/photo-1551650975-87deedd944c3",
+            owner: {
+              name: "Project Owner",
+              avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+            },
+            likes: Math.floor(Math.random() * 200) + 50,
+            comments: Math.floor(Math.random() * 50) + 5,
+            isVideo: false,
+          }));
+          setProjects(formattedProjects);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        toast({
+          title: "Failed to load projects",
+          description: "Using sample projects instead. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [toast]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
@@ -99,22 +106,28 @@ const Home = () => {
 
   return (
     <div className="flex flex-col w-full h-screen bg-black">
-      <div 
-        className="flex-1 overflow-y-auto snap-y snap-mandatory"
-        onScroll={handleScroll}
-      >
-        {projects.map((project, index) => (
-          <div 
-            key={project.id} 
-            className="w-full h-screen snap-start snap-always relative"
-          >
-            <VerticalVideoCard
-              project={project}
-              isActive={index === activeIndex}
-            />
-          </div>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center text-white">
+          <p>Loading creative projects...</p>
+        </div>
+      ) : (
+        <div 
+          className="flex-1 overflow-y-auto snap-y snap-mandatory"
+          onScroll={handleScroll}
+        >
+          {projects.map((project, index) => (
+            <div 
+              key={project.id} 
+              className="w-full h-screen snap-start snap-always relative"
+            >
+              <VerticalVideoCard
+                project={project}
+                isActive={index === activeIndex}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       <Header />
       <BottomNav />
