@@ -12,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -40,33 +39,6 @@ const Header = () => {
                 <Inbox className="w-6 h-6" />
               </button>
             </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="w-10 h-10 rounded-full p-0">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.avatar_url || ""} alt={user?.username || "User"} />
-                    <AvatarFallback>{user?.username?.substring(0, 2) || "U"}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link to="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/account-settings">Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/moderation" className="flex items-center">
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Moderation</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </>
         ) : (
           <Link to="/login">
