@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
-import type { Database } from "@/integrations/supabase/types";
 
 // Define the type for our Supabase client with any to bypass strict typing
 // This is a temporary solution until the database schema is fully defined
@@ -19,6 +18,19 @@ export class SupabaseProvider implements ApiProvider {
     });
     
     if (error) throw error;
+    
+    // If user data was provided, create or update profile
+    if (data.user && userData) {
+      try {
+        await this.createProfile({
+          id: data.user.id,
+          email: data.user.email,
+          ...userData
+        });
+      } catch (profileError) {
+        console.error("Error creating user profile:", profileError);
+      }
+    }
     
     return {
       user: data.user,
@@ -67,8 +79,7 @@ export class SupabaseProvider implements ApiProvider {
 
   // User profile methods
   async getProfile(userId: string): Promise<User | null> {
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -82,8 +93,7 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('profiles')
       .update(profile)
       .eq('id', session.user.id)
@@ -93,11 +103,40 @@ export class SupabaseProvider implements ApiProvider {
     if (error) throw error;
     return data as User;
   }
+  
+  async createProfile(profile: Partial<User>): Promise<User> {
+    if (!profile.id) throw new Error("User ID is required");
+    
+    // Check if profile exists
+    const existingProfile = await this.getProfile(profile.id);
+    
+    if (existingProfile) {
+      // Update existing profile
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(profile)
+        .eq('id', profile.id)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data as User;
+    } else {
+      // Create new profile
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert(profile)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data as User;
+    }
+  }
 
   // Project methods
   async getProjects(): Promise<Project[]> {
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('projects')
       .select('*')
       .order('created_at', { ascending: false });
@@ -107,8 +146,7 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async getProjectById(id: string): Promise<Project | null> {
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('projects')
       .select('*')
       .eq('id', id)
@@ -127,8 +165,7 @@ export class SupabaseProvider implements ApiProvider {
       owner_id: session.user.id
     };
     
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('projects')
       .insert(newProject)
       .select()
@@ -139,8 +176,7 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async updateProject(id: string, data: Partial<Project>): Promise<Project> {
-    const client = supabase as any;
-    const { data: project, error } = await client
+    const { data: project, error } = await supabase
       .from('projects')
       .update(data)
       .eq('id', id)
@@ -152,8 +188,7 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   async deleteProject(id: string): Promise<void> {
-    const client = supabase as any;
-    const { error } = await client
+    const { error } = await supabase
       .from('projects')
       .delete()
       .eq('id', id);
@@ -258,8 +293,7 @@ export class SupabaseProvider implements ApiProvider {
   
   // Chat methods
   async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('chat_messages')
       .select('*')
       .eq('project_id', projectId)
@@ -273,8 +307,7 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
-    const client = supabase as any;
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('chat_messages')
       .insert({
         project_id: projectId,

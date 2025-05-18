@@ -79,12 +79,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData?: Partial<User>) => {
     try {
       setIsLoading(true);
-      await api.signUp(email, password, userData);
-      toast({
-        title: 'Account created!',
-        description: 'Please check your email to verify your account',
-      });
-      navigate('/login');
+      const result = await api.signUp(email, password, userData);
+      
+      if (result?.user) {
+        toast({
+          title: 'Account created!',
+          description: 'You can now sign in with your new account',
+        });
+      } else {
+        toast({
+          title: 'Account created!',
+          description: 'Please check your email to verify your account',
+        });
+      }
     } catch (error: any) {
       console.error('Error signing up:', error);
       toast({

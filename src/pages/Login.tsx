@@ -18,18 +18,59 @@ const Login = () => {
   const [isLocked, setIsLocked] = useState(false);
   const [lockTime, setLockTime] = useState(0);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn, isAuthenticated } = useAuth();
+  const { signIn, signUp, isAuthenticated } = useAuth();
   
   // Demo credentials for easy login during development
   const [showDemoHelper, setShowDemoHelper] = useState(true);
   const demoEmail = "demo@orunlink.com";
   const demoPassword = "password123";
 
-  const handleUseDemoAccount = () => {
+  const handleUseDemoAccount = async () => {
     setEmail(demoEmail);
     setPassword(demoPassword);
+    
+    // Check if demo account exists, if not create it
+    try {
+      setIsLoading(true);
+      await signIn(demoEmail, demoPassword);
+      navigate('/home');
+    } catch (error) {
+      console.log("Demo account login failed, attempting to create it");
+      try {
+        // Create the demo account if login fails
+        await signUp(demoEmail, demoPassword, {
+          full_name: "Demo User",
+          username: "demouser"
+        });
+        
+        toast({
+          title: "Demo account created!",
+          description: "Login now to continue",
+        });
+        
+        // Try logging in again after a short delay
+        setTimeout(async () => {
+          try {
+            await signIn(demoEmail, demoPassword);
+            navigate('/home');
+          } catch (e) {
+            setError("Could not log in with demo account. Please try again.");
+          }
+        }, 1500);
+        
+      } catch (signupError: any) {
+        if (signupError.message.includes("already registered")) {
+          setError("Demo account exists but credentials might be incorrect. Please contact support.");
+        } else {
+          setError("Could not create demo account. Please try again later.");
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -59,6 +100,16 @@ const Login = () => {
         return () => clearInterval(interval);
       } else {
         localStorage.removeItem("loginLockedUntil");
+      }
+    }
+    
+    // Reset login attempts after 5 minutes
+    const lastAttemptTime = localStorage.getItem("lastLoginAttemptTime");
+    if (lastAttemptTime) {
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      if (parseInt(lastAttemptTime, 10) < fiveMinutesAgo) {
+        localStorage.removeItem("loginAttempts");
+        setLoginAttempts(0);
       }
     }
     
@@ -109,12 +160,17 @@ const Login = () => {
     const sanitizedEmail = sanitizeInput(email.trim());
     
     try {
+      setIsLoading(true);
       console.log("Submitting login with:", { email: sanitizedEmail });
       await signIn(sanitizedEmail, password);
       localStorage.removeItem("loginAttempts");
+      localStorage.removeItem("lastLoginAttemptTime");
       setLoginAttempts(0);
     } catch (error: any) {
       console.error("Login error:", error);
+      
+      // Store last attempt time
+      localStorage.setItem("lastLoginAttemptTime", Date.now().toString());
       
       const newAttempts = loginAttempts + 1;
       setLoginAttempts(newAttempts);
@@ -142,6 +198,8 @@ const Login = () => {
       } else {
         setError(`Invalid email or password. ${5 - newAttempts} attempts remaining.`);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,8 +228,9 @@ const Login = () => {
                     variant="outline"
                     className="text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
                     onClick={handleUseDemoAccount}
+                    disabled={isLoading}
                   >
-                    Use Demo Account
+                    {isLoading ? "Creating..." : "Use Demo Account"}
                   </Button>
                 </div>
                 <Button 
@@ -179,6 +238,7 @@ const Login = () => {
                   variant="ghost"
                   className="text-xs self-end"
                   onClick={() => setShowDemoHelper(false)}
+                  disabled={isLoading}
                 >
                   Hide
                 </Button>
@@ -205,7 +265,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={isLocked}
+                disabled={isLocked || isLoading}
                 autoComplete="username"
               />
             </div>
@@ -224,7 +284,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={isLocked}
+                disabled={isLocked || isLoading}
                 autoComplete="current-password"
               />
             </div>
@@ -234,7 +294,7 @@ const Login = () => {
                 id="remember"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                disabled={isLocked}
+                disabled={isLocked || isLoading}
               />
               <Label htmlFor="remember" className="text-sm">Remember me for 30 days</Label>
             </div>
@@ -242,9 +302,9 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full bg-orunlink-purple hover:bg-orunlink-dark"
-              disabled={isLocked}
+              disabled={isLocked || isLoading}
             >
-              {isLocked ? `Locked (${lockTime}s)` : "Sign in"}
+              {isLoading ? "Signing in..." : isLocked ? `Locked (${lockTime}s)` : "Sign in"}
             </Button>
           </form>
           
