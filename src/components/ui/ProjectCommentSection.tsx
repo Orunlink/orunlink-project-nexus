@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { addComment, getCommentsByProjectId, Comment } from "@/services/projectService";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/services/api";
 
 interface ProjectCommentSectionProps {
   projectId: string;
@@ -16,6 +18,9 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Check if we're using the mock provider or real Supabase
+  const usingRealtime = api.constructor.name === "SupabaseProvider";
 
   // Fetch comments
   useEffect(() => {
@@ -30,13 +35,30 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
 
     fetchComments();
 
-    // Set up interval to poll for new comments (since we're using mock data)
-    const intervalId = setInterval(fetchComments, 10000);
-    
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [projectId]);
+    // Set up either realtime subscription or polling based on provider
+    if (usingRealtime) {
+      // Use Supabase realtime if available
+      const channel = supabase
+        .channel('public:comments')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'comments', filter: `project_id=eq.${projectId}` },
+          (payload) => {
+            fetchComments();
+          }
+        )
+        .subscribe();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    } else {
+      // Otherwise use polling for mock data
+      const intervalId = setInterval(fetchComments, 10000);
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+  }, [projectId, usingRealtime]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,9 +74,11 @@ const ProjectCommentSection = ({ projectId }: ProjectCommentSectionProps) => {
           description: "Your comment has been posted successfully.",
         });
         
-        // Refresh comments after posting
-        const commentsData = await getCommentsByProjectId(projectId);
-        setComments(commentsData);
+        // If not using realtime, manually refresh comments
+        if (!usingRealtime) {
+          const commentsData = await getCommentsByProjectId(projectId);
+          setComments(commentsData);
+        }
       }
     } catch (error) {
       console.error("Error posting comment:", error);
