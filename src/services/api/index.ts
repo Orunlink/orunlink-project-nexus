@@ -1,10 +1,10 @@
 
 import { ApiProvider } from './types';
-// import { supabaseProvider } from './supabaseProvider';
-import { mockAuthProvider } from './mockAuthProvider';
+import { supabaseProvider } from './supabaseProvider';
+// import { mockAuthProvider } from './mockAuthProvider';
 
-// Use mock provider instead of Supabase for now
-let currentProvider: ApiProvider = mockAuthProvider;
+// Use Supabase provider
+let currentProvider: ApiProvider = supabaseProvider;
 
 // Function to switch providers (will be used when we add Firebase)
 export function setApiProvider(provider: ApiProvider) {

@@ -1,8 +1,9 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api, User } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -19,13 +20,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const refreshUser = async () => {
     try {
-      setIsLoading(true);
       const session = await api.getSession();
       if (session?.user) {
         setUser(session.user);
@@ -35,15 +36,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error refreshing user:', error);
       setUser(null);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // Run once on mount to check if user is already logged in
-    refreshUser();
-  }, []);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (session?.user) {
+          // User is signed in, get their profile
+          await refreshUser();
+          
+          // Redirect to home if on auth page
+          if (location.pathname === '/auth' || location.pathname === '/login' || location.pathname === '/signup') {
+            navigate('/home');
+          }
+        } else {
+          // User is signed out
+          setUser(null);
+          
+          // Redirect to auth if on protected route
+          const publicPaths = ['/auth', '/login', '/signup', '/forgot-password', '/welcome'];
+          if (!publicPaths.includes(location.pathname)) {
+            navigate('/auth');
+          }
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        refreshUser();
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, location.pathname]);
 
   const signIn = async (email: string, password: string) => {
     try {

@@ -102,6 +102,13 @@ export interface ApiProvider {
   getChatMessages(projectId: string): Promise<ChatMessage[]>;
   sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage>;
   
+  // Like/Save methods
+  toggleLike(projectId: string): Promise<boolean>;
+  toggleSave(projectId: string): Promise<boolean>;
+  isProjectLiked(projectId: string): Promise<boolean>;
+  isProjectSaved(projectId: string): Promise<boolean>;
+  getProjectLikeCount(projectId: string): Promise<number>;
+  
   // Storage methods
   uploadFile(bucket: string, file: File, path?: string): Promise<FileUploadResult>;
   getFileUrl(bucket: string, path: string): string;

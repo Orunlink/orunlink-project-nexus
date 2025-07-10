@@ -136,6 +136,27 @@ export class MockAuthProvider implements ApiProvider {
     };
   }
   
+  // Like/Save methods
+  async toggleLike(projectId: string): Promise<boolean> {
+    return Math.random() > 0.5;
+  }
+
+  async toggleSave(projectId: string): Promise<boolean> {
+    return Math.random() > 0.5;
+  }
+
+  async isProjectLiked(projectId: string): Promise<boolean> {
+    return Math.random() > 0.5;
+  }
+
+  async isProjectSaved(projectId: string): Promise<boolean> {
+    return Math.random() > 0.5;
+  }
+
+  async getProjectLikeCount(projectId: string): Promise<number> {
+    return Math.floor(Math.random() * 100);
+  }
+
   // Storage methods
   async uploadFile(bucket: string, file: File, path?: string): Promise<FileUploadResult> {
     return {

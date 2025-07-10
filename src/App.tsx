@@ -8,11 +8,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import ProjectDetail from "./pages/ProjectDetail";
 import Profile from "./pages/Profile";
-import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
@@ -35,10 +34,11 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/welcome" element={<Welcome />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/signup" element={<Auth />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/moderation" element={<Moderation />} />
             
