@@ -9,18 +9,46 @@ export class SupabaseProvider implements ApiProvider {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: userData,
+        data: {
+          username: userData?.username || email.split('@')[0],
+          full_name: userData?.full_name || email.split('@')[0],
+          ...userData
+        },
       }
     });
     
     if (error) throw error;
     
+    if (data.user) {
+      // Wait a moment for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Try to get the profile that should have been created by the trigger
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", data.user.id)
+        .single();
+
+      return {
+        user: profile ? {
+          id: data.user.id,
+          email: data.user.email,
+          username: profile.username,
+          full_name: profile.full_name,
+          bio: profile.bio,
+          avatar_url: profile.avatar_url,
+        } : {
+          id: data.user.id,
+          email: data.user.email,
+          ...userData
+        },
+        token: data.session?.access_token
+      };
+    }
+    
     return {
-      user: data.user ? {
-        id: data.user.id,
-        email: data.user.email,
-        ...userData
-      } : null,
+      user: null,
       token: data.session?.access_token
     };
   }
