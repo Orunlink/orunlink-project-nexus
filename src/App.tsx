@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import JoinRequestNotifications from "@/components/ui/JoinRequestNotifications";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
@@ -159,6 +160,7 @@ const App = () => (
           </Routes>
           <Toaster />
           <Sonner />
+          <JoinRequestNotifications />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

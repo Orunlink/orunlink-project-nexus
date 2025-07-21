@@ -5,7 +5,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { shareProject } from "@/services/projectService";
 import { useNavigate } from "react-router-dom";
-import ProjectCommentSection from "./ProjectCommentSection";
+import EnhancedCommentSection from "./EnhancedCommentSection";
 import {
   Drawer,
   DrawerContent,
@@ -222,7 +222,7 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
             </DrawerClose>
           </DrawerHeader>
           <div className="px-0 py-0 overflow-auto max-h-[calc(85vh-60px)]">
-            <ProjectCommentSection projectId={project.id} />
+        <EnhancedCommentSection projectId={project.id} isOpen={showComments} />
           </div>
         </DrawerContent>
       </Drawer>

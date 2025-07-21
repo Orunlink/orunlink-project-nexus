@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Camera, Upload, X } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import FileUpload from "@/components/ui/FileUpload";
 
 const Create = () => {
   const [title, setTitle] = useState("");
@@ -18,26 +19,12 @@ const Create = () => {
   const [tags, setTags] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      setFiles(prev => [...prev, ...selectedFiles]);
-      
-      const newPreviewUrls = selectedFiles.map(file => URL.createObjectURL(file));
-      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-    }
-  };
-
-  const removeFile = (index: number) => {
-    URL.revokeObjectURL(previewUrls[index]);
-    
-    setFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  const handleFilesSelected = (selectedFiles: File[]) => {
+    setFiles(selectedFiles);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,7 +72,7 @@ const Create = () => {
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const result = await api.uploadFile('project_media', file);
+        const result = await api.uploadFile('project-media', file);
         mediaUrls.push(result.url);
         
         // Use first image as main image
@@ -177,43 +164,13 @@ const Create = () => {
 
             <div className="space-y-2">
               <Label>Upload Media</Label>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
-                {previewUrls.map((url, index) => (
-                  <div key={index} className="relative aspect-square rounded-md overflow-hidden glass-card">
-                    <img 
-                      src={url} 
-                      alt={`Preview ${index}`} 
-                      className="w-full h-full object-cover" 
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="absolute top-1 right-1 bg-black bg-opacity-60 rounded-full p-1"
-                    >
-                      <X className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                ))}
-                
-                <div className="aspect-square rounded-md border-2 border-dashed border-blue-200 flex flex-col items-center justify-center hover:bg-blue-50/30 transition-colors backdrop-blur-sm">
-                  <label 
-                    htmlFor="file-upload" 
-                    className="cursor-pointer w-full h-full flex flex-col items-center justify-center p-4"
-                  >
-                    <Camera className="w-8 h-8 text-orunlink-purple mb-2" />
-                    <span className="text-sm text-orunlink-dark">Add Media</span>
-                    <input
-                      id="file-upload"
-                      type="file"
-                      accept="image/*,video/*"
-                      className="hidden"
-                      multiple
-                      onChange={handleFileChange}
-                    />
-                  </label>
-                </div>
-              </div>
+              <FileUpload 
+                onFilesSelected={handleFilesSelected}
+                acceptedTypes="image/*,video/*"
+                maxFiles={10}
+                maxSize={50}
+                className="mt-2"
+              />
             </div>
 
             <div className="flex justify-end">

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileSectionProps {
@@ -43,26 +43,33 @@ const ProfileSection = ({
       }
 
       const file = event.target.files[0];
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-      // Upload the file to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Get the public URL of the uploaded file
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large", 
+          description: "Please select an image smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      // Update the user's profile with the new avatar
+      // Upload using the API service
+      const result = await api.uploadFile('avatars', file);
+      
+      // Update user profile with new avatar URL
       if (user) {
-        await updateProfile({ avatar_url: data.publicUrl });
+        await updateProfile({ avatar_url: result.url });
       }
 
       toast({

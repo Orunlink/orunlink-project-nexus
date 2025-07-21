@@ -52,6 +52,16 @@ export interface JoinRequest {
   owner_id: string;
   status: "pending" | "accepted" | "rejected";
   created_at: string;
+  requester?: {
+    id: string;
+    username: string;
+    full_name: string;
+    avatar_url: string;
+  };
+  project?: {
+    id: string;
+    title: string;
+  };
 }
 
 export interface ChatMessage {
