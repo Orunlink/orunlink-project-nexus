@@ -66,11 +66,43 @@ export interface JoinRequest {
 
 export interface ChatMessage {
   id: string;
+  project_id?: string;
+  sender_id: string;
+  recipient_id?: string;
+  content: string;
+  message_type: 'text' | 'image' | 'file';
+  file_url?: string;
+  created_at: string;
+  sender?: {
+    username: string;
+    full_name: string;
+    avatar_url: string;
+  };
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: 'join_request' | 'comment' | 'like' | 'message' | 'project_update';
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  related_id?: string;
+  action_url?: string;
+}
+
+export interface ChatParticipant {
+  id: string;
   project_id: string;
   user_id: string;
-  content: string;
-  attachments?: string[];
-  created_at: string;
+  joined_at: string;
+  last_read_at: string;
+  user?: {
+    username: string;
+    full_name: string;
+    avatar_url: string;
+  };
 }
 
 export interface FileUploadResult {
@@ -109,8 +141,20 @@ export interface ApiProvider {
   checkExistingJoinRequest(projectId: string, userId: string): Promise<boolean>;
   
   // Chat methods
-  getChatMessages(projectId: string): Promise<ChatMessage[]>;
-  sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage>;
+  getProjectChatMessages(projectId: string): Promise<ChatMessage[]>;
+  sendProjectChatMessage(projectId: string, content: string): Promise<ChatMessage>;
+  getProjectChatParticipants(projectId: string): Promise<ChatParticipant[]>;
+  addProjectChatParticipant(projectId: string, userId: string): Promise<void>;
+  
+  // Private messaging methods
+  getPrivateMessages(userId: string): Promise<ChatMessage[]>;
+  sendPrivateMessage(recipientId: string, content: string): Promise<ChatMessage>;
+  
+  // Notification methods
+  getNotifications(): Promise<Notification[]>;
+  markNotificationAsRead(notificationId: string): Promise<void>;
+  markAllNotificationsAsRead(): Promise<void>;
+  createNotification(notification: Partial<Notification>): Promise<Notification>;
   
   // Like/Save methods
   toggleLike(projectId: string): Promise<boolean>;

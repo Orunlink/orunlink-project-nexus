@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          file_url: string | null
+          id: string
+          is_edited: boolean | null
+          message_type: string
+          project_id: string | null
+          recipient_id: string | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_edited?: boolean | null
+          message_type?: string
+          project_id?: string | null
+          recipient_id?: string | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          is_edited?: boolean | null
+          message_type?: string
+          project_id?: string | null
+          recipient_id?: string | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -93,6 +156,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          related_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

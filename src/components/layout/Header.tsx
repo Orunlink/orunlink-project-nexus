@@ -1,17 +1,11 @@
 
 import { Link } from "react-router-dom";
-import { Inbox, Bell, LogIn, Shield } from "lucide-react";
+import { Inbox, LogIn } from "lucide-react";
 import OrunlinkLogo from "@/components/ui/OrunlinkLogo";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -29,11 +23,7 @@ const Header = () => {
       <div className="flex-1 flex justify-end gap-4 items-center">
         {isAuthenticated ? (
           <>
-            <Link to="/notifications">
-              <button className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
-                <Bell className="w-6 h-6" />
-              </button>
-            </Link>
+            <NotificationDropdown />
             <Link to="/messages">
               <button className="w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition-colors">
                 <Inbox className="w-6 h-6" />

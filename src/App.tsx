@@ -61,7 +61,7 @@ const App = () => (
               } 
             />
             <Route 
-              path="/project-chat/:projectId" 
+              path="/project/:projectId/chat" 
               element={
                 <ProtectedRoute>
                   <ProjectChat />
