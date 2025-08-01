@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
+import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, ChatParticipant, Notification, FileUploadResult } from "./types";
 
 export class SupabaseProvider implements ApiProvider {
   // Auth methods
@@ -555,23 +555,248 @@ export class SupabaseProvider implements ApiProvider {
     return count || 0;
   }
   
-  // Chat methods - mock implementations for now
-  async getChatMessages(projectId: string): Promise<ChatMessage[]> {
-    return [];
+  // Chat methods
+  async getProjectChatMessages(projectId: string): Promise<ChatMessage[]> {
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true });
+    
+    if (error) throw error;
+    
+    // Get sender profiles separately
+    const messagesWithSenders = await Promise.all(
+      (data || []).map(async (msg) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .eq("user_id", msg.sender_id)
+          .single();
+        
+        return {
+          ...msg,
+          message_type: msg.message_type as 'text' | 'image' | 'file',
+          sender: profile ? {
+            username: profile.username || '',
+            full_name: profile.full_name || '',
+            avatar_url: profile.avatar_url || ''
+          } : undefined
+        };
+      })
+    );
+    
+    return messagesWithSenders;
   }
   
-  async sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage> {
+  async sendProjectChatMessage(projectId: string, content: string): Promise<ChatMessage> {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        project_id: projectId,
+        sender_id: session.user.id,
+        content,
+        message_type: 'text'
+      })
+      .select("*")
+      .single();
+    
+    if (error) throw error;
+    
+    // Get sender profile separately
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, full_name, avatar_url")
+      .eq("user_id", data.sender_id)
+      .single();
+    
     return {
-      id: Math.random().toString(36).substring(2),
-      project_id: projectId,
-      user_id: session.user.id,
-      content,
-      attachments,
-      created_at: new Date().toISOString()
-    } as ChatMessage;
+      ...data,
+      message_type: data.message_type as 'text' | 'image' | 'file',
+      sender: profile ? {
+        username: profile.username || '',
+        full_name: profile.full_name || '',
+        avatar_url: profile.avatar_url || ''
+      } : undefined
+    };
+  }
+  
+  async getProjectChatParticipants(projectId: string): Promise<ChatParticipant[]> {
+    const { data, error } = await supabase
+      .from("chat_participants")
+      .select("*")
+      .eq("project_id", projectId);
+    
+    if (error) throw error;
+    
+    // Get user profiles separately
+    const participantsWithUsers = await Promise.all(
+      (data || []).map(async (participant) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .eq("user_id", participant.user_id)
+          .single();
+        
+        return {
+          ...participant,
+          user: profile ? {
+            username: profile.username || '',
+            full_name: profile.full_name || '',
+            avatar_url: profile.avatar_url || ''
+          } : undefined
+        };
+      })
+    );
+    
+    return participantsWithUsers;
+  }
+  
+  async addProjectChatParticipant(projectId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from("chat_participants")
+      .insert({
+        project_id: projectId,
+        user_id: userId
+      });
+    
+    if (error) throw error;
+  }
+  
+  async getPrivateMessages(userId: string): Promise<ChatMessage[]> {
+    const session = await this.getSession();
+    if (!session?.user?.id) throw new Error("User not authenticated");
+    
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .select("*")
+      .or(`and(sender_id.eq.${session.user.id},recipient_id.eq.${userId}),and(sender_id.eq.${userId},recipient_id.eq.${session.user.id})`)
+      .is("project_id", null)
+      .order("created_at", { ascending: true });
+    
+    if (error) throw error;
+    
+    // Get sender profiles separately
+    const messagesWithSenders = await Promise.all(
+      (data || []).map(async (msg) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .eq("user_id", msg.sender_id)
+          .single();
+        
+        return {
+          ...msg,
+          message_type: msg.message_type as 'text' | 'image' | 'file',
+          sender: profile ? {
+            username: profile.username || '',
+            full_name: profile.full_name || '',
+            avatar_url: profile.avatar_url || ''
+          } : undefined
+        };
+      })
+    );
+    
+    return messagesWithSenders;
+  }
+  
+  async sendPrivateMessage(recipientId: string, content: string): Promise<ChatMessage> {
+    const session = await this.getSession();
+    if (!session?.user?.id) throw new Error("User not authenticated");
+    
+    const { data, error } = await supabase
+      .from("chat_messages")
+      .insert({
+        sender_id: session.user.id,
+        recipient_id: recipientId,
+        content,
+        message_type: 'text'
+      })
+      .select("*")
+      .single();
+    
+    if (error) throw error;
+    
+    // Get sender profile separately
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, full_name, avatar_url")
+      .eq("user_id", data.sender_id)
+      .single();
+    
+    return {
+      ...data,
+      message_type: data.message_type as 'text' | 'image' | 'file',
+      sender: profile ? {
+        username: profile.username || '',
+        full_name: profile.full_name || '',
+        avatar_url: profile.avatar_url || ''
+      } : undefined
+    };
+  }
+  
+  // Notification methods
+  async getNotifications(): Promise<Notification[]> {
+    const session = await this.getSession();
+    if (!session?.user?.id) throw new Error("User not authenticated");
+    
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false });
+    
+    if (error) throw error;
+    return data?.map(notification => ({
+      ...notification,
+      type: notification.type as 'join_request' | 'comment' | 'like' | 'message' | 'project_update'
+    })) || [];
+  }
+  
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId);
+    
+    if (error) throw error;
+  }
+  
+  async markAllNotificationsAsRead(): Promise<void> {
+    const session = await this.getSession();
+    if (!session?.user?.id) throw new Error("User not authenticated");
+    
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", session.user.id);
+    
+    if (error) throw error;
+  }
+  
+  async createNotification(notification: Partial<Notification>): Promise<Notification> {
+    const { data, error } = await supabase
+      .from("notifications")
+      .insert({
+        user_id: notification.user_id,
+        type: notification.type,
+        title: notification.title || '',
+        message: notification.message || '',
+        is_read: notification.is_read || false,
+        related_id: notification.related_id,
+        action_url: notification.action_url
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return {
+      ...data,
+      type: data.type as 'join_request' | 'comment' | 'like' | 'message' | 'project_update'
+    };
   }
   
   // Storage methods

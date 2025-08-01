@@ -1,5 +1,5 @@
 
-import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, FileUploadResult } from "./types";
+import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, ChatParticipant, Notification, FileUploadResult } from "./types";
 
 // Mock data
 const mockUsers: Record<string, User> = {
@@ -124,16 +124,46 @@ export class MockAuthProvider implements ApiProvider {
   async checkExistingJoinRequest(projectId: string, userId: string): Promise<boolean> { return false; }
   
   // Chat methods
-  async getChatMessages(projectId: string): Promise<ChatMessage[]> { return []; }
-  async sendChatMessage(projectId: string, content: string, attachments?: string[]): Promise<ChatMessage> {
+  async getProjectChatMessages(projectId: string): Promise<ChatMessage[]> { return []; }
+  async sendProjectChatMessage(projectId: string, content: string): Promise<ChatMessage> {
     return {
       id: "message-id",
       project_id: projectId,
-      user_id: "demo-user-id-123",
+      sender_id: "demo-user-id-123",
       content,
-      attachments,
+      message_type: 'text',
       created_at: new Date().toISOString()
     };
+  }
+  async getProjectChatParticipants(projectId: string): Promise<ChatParticipant[]> { return []; }
+  async addProjectChatParticipant(projectId: string, userId: string): Promise<void> {}
+  async getPrivateMessages(userId: string): Promise<ChatMessage[]> { return []; }
+  async sendPrivateMessage(recipientId: string, content: string): Promise<ChatMessage> {
+    return {
+      id: "private-message-id",
+      sender_id: "demo-user-id-123",
+      recipient_id: recipientId,
+      content,
+      message_type: 'text',
+      created_at: new Date().toISOString()
+    };
+  }
+  
+  // Notification methods
+  async getNotifications(): Promise<Notification[]> { return []; }
+  async markNotificationAsRead(notificationId: string): Promise<void> {}
+  async markAllNotificationsAsRead(): Promise<void> {}
+  async createNotification(notification: Partial<Notification>): Promise<Notification> {
+    return {
+      id: "notification-id",
+      user_id: "demo-user-id-123",
+      type: 'comment',
+      title: 'Mock Notification',
+      message: 'This is a mock notification',
+      is_read: false,
+      created_at: new Date().toISOString(),
+      ...notification
+    } as Notification;
   }
   
   // Like/Save methods
