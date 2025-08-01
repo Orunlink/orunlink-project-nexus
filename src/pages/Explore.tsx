@@ -1,131 +1,65 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import ProjectCard from "@/components/ui/ProjectCard";
 import Layout from "@/components/layout/Layout";
 import BottomNav from "@/components/layout/BottomNav";
-
-// Mock data
-const mockProjects = [
-  {
-    id: "1",
-    title: "Modern Mobile App UI Design",
-    description: "A sleek mobile app interface with dark mode and customizable themes.",
-    imageUrl: "https://images.unsplash.com/photo-1551650975-87deedd944c3",
-    owner: {
-      name: "Alex Johnson",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    },
-    likes: 124,
-    comments: 23,
-  },
-  {
-    id: "2",
-    title: "E-commerce Website Redesign",
-    description: "Complete redesign of an e-commerce platform with focus on UX improvement.",
-    imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-    owner: {
-      name: "Sarah Miller",
-      avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    likes: 89,
-    comments: 15,
-    isVideo: true,
-  },
-  {
-    id: "3",
-    title: "Smart Home IoT Dashboard",
-    description: "Dashboard for controlling smart home devices with analytics and automation.",
-    imageUrl: "https://images.unsplash.com/photo-1558655146-d09347e92766",
-    owner: {
-      name: "David Chen",
-      avatar: "https://randomuser.me/api/portraits/men/67.jpg",
-    },
-    likes: 201,
-    comments: 42,
-  },
-  {
-    id: "4",
-    title: "Fitness Tracking App",
-    description: "Mobile application for tracking workouts, nutrition, and health metrics.",
-    imageUrl: "https://images.unsplash.com/photo-1594882645126-14020914d58d",
-    owner: {
-      name: "Emma Taylor",
-      avatar: "https://randomuser.me/api/portraits/women/22.jpg",
-    },
-    likes: 156,
-    comments: 28,
-  },
-  {
-    id: "5",
-    title: "Cryptocurrency Exchange Platform",
-    description: "Secure platform for trading cryptocurrencies with real-time market data.",
-    imageUrl: "https://images.unsplash.com/photo-1639322537231-2f206e06af84",
-    owner: {
-      name: "Michael Lee",
-      avatar: "https://randomuser.me/api/portraits/men/42.jpg",
-    },
-    likes: 178,
-    comments: 31,
-    isVideo: true,
-  },
-  {
-    id: "6",
-    title: "Social Media Analytics Tool",
-    description: "Tool for tracking and analyzing social media performance across platforms.",
-    imageUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7",
-    owner: {
-      name: "Olivia Wilson",
-      avatar: "https://randomuser.me/api/portraits/women/57.jpg",
-    },
-    likes: 112,
-    comments: 19,
-  },
-  {
-    id: "7",
-    title: "Music Player Redesign",
-    description: "A modern music player with enhanced visualization and playlist features.",
-    imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4",
-    owner: {
-      name: "Jason Brown",
-      avatar: "https://randomuser.me/api/portraits/men/12.jpg",
-    },
-    likes: 89,
-    comments: 17,
-  },
-  {
-    id: "8",
-    title: "Photography Portfolio",
-    description: "Minimalist portfolio website for professional photographers.",
-    imageUrl: "https://images.unsplash.com/photo-1554080353-a576cf803bda",
-    owner: {
-      name: "Lisa Garcia",
-      avatar: "https://randomuser.me/api/portraits/women/32.jpg",
-    },
-    likes: 143,
-    comments: 21,
-    isVideo: true,
-  },
-  {
-    id: "9",
-    title: "Recipe App Concept",
-    description: "Mobile app for discovering and sharing recipes with social features.",
-    imageUrl: "https://images.unsplash.com/photo-1505935428862-770b6f24f629",
-    owner: {
-      name: "Mark Wilson",
-      avatar: "https://randomuser.me/api/portraits/men/22.jpg",
-    },
-    likes: 76,
-    comments: 14,
-  },
-];
+import { api } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 const Explore = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [filteredProjects, setFilteredProjects] = useState(mockProjects);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setIsLoading(true);
+        const apiProjects = await api.getProjects();
+        
+        if (apiProjects && apiProjects.length > 0) {
+          // Transform API projects to the format expected by ProjectCard
+          const formattedProjects = apiProjects.map(project => ({
+            id: project.id,
+            title: project.title || "Untitled Project",
+            description: project.description || "No description provided",
+            imageUrl: project.main_image || (project.media_urls && project.media_urls[0]) || "",
+            owner: project.owner || {
+              name: "Unknown User",
+              avatar: "",
+            },
+            likes: 0, // Real count will be fetched separately
+            comments: 0, // Real count will be fetched separately
+            isVideo: project.media_urls?.some(url => url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')) || false,
+          }));
+          setProjects(formattedProjects);
+          setFilteredProjects(formattedProjects);
+        } else {
+          setProjects([]);
+          setFilteredProjects([]);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        toast({
+          title: "Failed to load projects",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+        setProjects([]);
+        setFilteredProjects([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [toast]);
 
   // Handle search activation
   const activateSearch = () => {
@@ -139,7 +73,7 @@ const Explore = () => {
   const cancelSearch = () => {
     setIsSearching(false);
     setSearchTerm("");
-    setFilteredProjects(mockProjects);
+    setFilteredProjects(projects);
   };
 
   // Handle search input change
@@ -148,12 +82,13 @@ const Explore = () => {
     setSearchTerm(term);
     
     if (term.trim() === "") {
-      setFilteredProjects(mockProjects);
+      setFilteredProjects(projects);
     } else {
-      const filtered = mockProjects.filter(
+      const filtered = projects.filter(
         (project) =>
           project.title.toLowerCase().includes(term.toLowerCase()) ||
-          project.description.toLowerCase().includes(term.toLowerCase())
+          project.description.toLowerCase().includes(term.toLowerCase()) ||
+          project.owner.name.toLowerCase().includes(term.toLowerCase())
       );
       setFilteredProjects(filtered);
     }
@@ -219,31 +154,39 @@ const Explore = () => {
       
       {/* Content area */}
       <div className="mt-16 mb-16 px-1 py-2 flex-1">
-        {filteredProjects.length === 0 ? (
+        {isLoading ? (
           <div className="text-center py-10">
-            <p className="text-gray-500">No projects found matching your search criteria.</p>
+            <p className="text-gray-500">Loading projects...</p>
+          </div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-500">
+              {searchTerm ? "No projects found matching your search criteria." : "No projects available yet."}
+            </p>
           </div>
         ) : (
           <>
             {/* Instagram-style grid layout */}
             <div className="grid grid-cols-3 gap-1">
               {/* Featured project (larger, spans 2 columns and rows) */}
-              <div className="col-span-2 row-span-2 relative aspect-square">
-                <a href={`/project/${featuredProject.id}`} className="block w-full h-full">
-                  <img 
-                    src={featuredProject.imageUrl} 
-                    alt={featuredProject.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {featuredProject.isVideo && (
-                    <div className="absolute top-2 right-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-                        <path d="M4 4h16v16H4V4zm12 10l-4-2v4l4-2z" />
-                      </svg>
-                    </div>
-                  )}
-                </a>
-              </div>
+              {featuredProject && (
+                <div className="col-span-2 row-span-2 relative aspect-square">
+                  <a href={`/project/${featuredProject.id}`} className="block w-full h-full">
+                    <img 
+                      src={featuredProject.imageUrl} 
+                      alt={featuredProject.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {featuredProject.isVideo && (
+                      <div className="absolute top-2 right-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
+                          <path d="M4 4h16v16H4V4zm12 10l-4-2v4l4-2z" />
+                        </svg>
+                      </div>
+                    )}
+                  </a>
+                </div>
+              )}
               
               {/* Regular grid projects */}
               {remainingProjects.map((project, index) => (

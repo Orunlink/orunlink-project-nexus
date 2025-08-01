@@ -26,6 +26,10 @@ export interface Project {
   tags?: string[];
   main_image?: string;
   media_urls?: string[];
+  owner?: {
+    name: string;
+    avatar: string;
+  };
   created_at?: string;
   updated_at?: string;
 }

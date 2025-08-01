@@ -9,27 +9,29 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AccountSettings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
   const [openDialog, setOpenDialog] = useState<string | null>(null);
 
-  // Mock user data
-  const mockUser = {
-    id: "user1",
-    name: "Alex Johnson",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-  };
-
-  const handleLogout = () => {
-    // In a real app, this would call auth logout function
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    // Navigate to login page after logout
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleProfilePictureChange = () => {
@@ -61,8 +63,8 @@ const AccountSettings = () => {
         <div className="p-4">
           <div className="flex items-center mb-6">
             <Avatar className="h-16 w-16 mr-4 border-2 border-white shadow-sm">
-              {mockUser.avatar ? (
-                <AvatarImage src={mockUser.avatar} alt={mockUser.name} />
+              {user?.avatar_url ? (
+                <AvatarImage src={user.avatar_url} alt={user.full_name || user.username || "User"} />
               ) : (
                 <AvatarFallback className="bg-gray-100">
                   <User className="w-8 h-8 text-gray-400" />
@@ -71,7 +73,7 @@ const AccountSettings = () => {
             </Avatar>
             <div>
               <h2 className="text-xl font-bold">My Account</h2>
-              <p className="text-gray-600 text-sm">{mockUser.name}</p>
+              <p className="text-gray-600 text-sm">{user?.full_name || user?.username || "User"}</p>
             </div>
           </div>
 
@@ -163,7 +165,7 @@ const AccountSettings = () => {
             
             <div className="flex flex-col items-center gap-6 py-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={mockUser.avatar} alt="Profile" />
+                <AvatarImage src={user?.avatar_url || ""} alt="Profile" />
                 <AvatarFallback>
                   <User className="h-12 w-12" />
                 </AvatarFallback>

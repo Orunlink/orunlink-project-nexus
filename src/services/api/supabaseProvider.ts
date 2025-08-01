@@ -193,18 +193,35 @@ export class SupabaseProvider implements ApiProvider {
 
     if (error) throw error;
 
-    return data.map(project => ({
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      owner_id: project.owner_id,
-      category: project.category,
-      tags: project.tags,
-      main_image: project.main_image,
-      media_urls: project.project_media?.map((m: any) => m.media_url) || [],
-      created_at: project.created_at,
-      updated_at: project.updated_at
-    }));
+    // Get profiles for each project separately
+    const projectsWithOwners = await Promise.all(
+      data.map(async (project) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .eq("user_id", project.owner_id)
+          .single();
+
+        return {
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          owner_id: project.owner_id,
+          category: project.category,
+          tags: project.tags,
+          main_image: project.main_image,
+          media_urls: project.project_media?.map((m: any) => m.media_url) || [],
+          owner: {
+            name: profile?.full_name || profile?.username || "Unknown User",
+            avatar: profile?.avatar_url || "",
+          },
+          created_at: project.created_at,
+          updated_at: project.updated_at
+        };
+      })
+    );
+
+    return projectsWithOwners;
   }
   
   async getProjectById(id: string): Promise<Project | null> {
