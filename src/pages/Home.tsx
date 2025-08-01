@@ -25,19 +25,31 @@ const Home = () => {
         
         if (apiProjects && apiProjects.length > 0) {
           // Transform API projects to the format expected by VerticalVideoCard
-          const formattedProjects = apiProjects.map(project => ({
-            id: project.id,
-            title: project.title || "Untitled Project",
-            description: project.description || "No description provided",
-            imageUrl: project.main_image || (project.media_urls && project.media_urls[0]) || "",
-            owner: project.owner || {
-              name: "Unknown User",
-              avatar: "",
-            },
-            likes: 0, // Real count will be fetched separately
-            comments: 0, // Real count will be fetched separately
-            isVideo: project.media_urls?.some(url => url.includes('.mp4') || url.includes('.webm') || url.includes('.mov')) || false,
-          }));
+          const formattedProjects = apiProjects.map(project => {
+            // Better video detection
+            const mediaUrl = project.main_image || (project.media_urls && project.media_urls[0]) || "";
+            const isVideo = project.media_urls?.some(url => 
+              url.toLowerCase().includes('.mp4') || 
+              url.toLowerCase().includes('.webm') || 
+              url.toLowerCase().includes('.mov') ||
+              url.toLowerCase().includes('.avi') ||
+              url.toLowerCase().includes('video')
+            ) || false;
+            
+            return {
+              id: project.id,
+              title: project.title || "Untitled Project",
+              description: project.description || "No description provided",
+              imageUrl: mediaUrl,
+              owner: project.owner || {
+                name: "Unknown User",
+                avatar: "",
+              },
+              likes: 0, // Real count will be fetched separately
+              comments: 0, // Real count will be fetched separately
+              isVideo: isVideo,
+            };
+          });
           setProjects(formattedProjects);
         } else {
           setProjects([]);

@@ -6,6 +6,7 @@ import { Button } from "./button";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import VideoPlayer from "./VideoPlayer";
 
 interface ProjectCardProps {
   id: string;
@@ -150,25 +151,21 @@ const ProjectCard = ({
     <Link to={`/project/${id}`} className="bg-white rounded-md overflow-hidden shadow-sm">
       <div className="relative">
         <div className="pb-[100%] relative">
-          {isVideo ? (
-            <video
-              className="absolute inset-0 w-full h-full object-cover"
-              src={imageUrl}
-              muted
-              loop
-            />
-          ) : (
-            <img
-              src={imageUrl}
-              alt={title}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          )}
+          <VideoPlayer
+            src={imageUrl}
+            muted={true}
+            loop={true}
+            controls={false}
+            className="absolute inset-0 w-full h-full"
+            onError={(error) => {
+              console.error("Video error in ProjectCard:", error);
+            }}
+          />
         </div>
         {isVideo && (
           <div className="absolute top-2 right-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-              <path d="M4 4h16v16H4V4zm12 10l-4-2v4l4-2z" />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-6 h-6 drop-shadow-lg">
+              <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         )}

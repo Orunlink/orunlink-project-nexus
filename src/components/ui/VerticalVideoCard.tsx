@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { shareProject } from "@/services/projectService";
 import { useNavigate } from "react-router-dom";
 import EnhancedCommentSection from "./EnhancedCommentSection";
+import VideoPlayer from "./VideoPlayer";
 import {
   Drawer,
   DrawerContent,
@@ -122,22 +123,17 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
     <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Media content */}
       <div className="absolute inset-0">
-        {project.isVideo ? (
-          <video
-            className="w-full h-full object-cover"
-            src={project.imageUrl}
-            autoPlay={isActive}
-            loop
-            muted
-            playsInline
-          />
-        ) : (
-          <img
-            src={project.imageUrl}
-            alt={project.title}
-            className="w-full h-full object-cover"
-          />
-        )}
+        <VideoPlayer
+          src={project.imageUrl}
+          autoPlay={isActive && project.isVideo}
+          muted={true}
+          loop={true}
+          controls={false}
+          className="w-full h-full"
+          onError={(error) => {
+            console.error("Video error in VerticalVideoCard:", error);
+          }}
+        />
       </div>
 
       {/* Side action buttons - Made even smaller */}
