@@ -193,6 +193,34 @@ export class SupabaseProvider implements ApiProvider {
 
     if (error) throw error;
 
+    if (!data) return [];
+
+    // Get project IDs for batch operations
+    const projectIds = data.map(p => p.id);
+    
+    // Fetch like counts and comment counts for all projects
+    const [likesData, commentsData] = await Promise.all([
+      supabase
+        .from('likes')
+        .select('project_id')
+        .in('project_id', projectIds),
+      supabase
+        .from('comments')
+        .select('project_id')
+        .in('project_id', projectIds)
+    ]);
+
+    // Count likes and comments for each project
+    const likeCounts = likesData.data?.reduce((acc, like) => {
+      acc[like.project_id] = (acc[like.project_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
+
+    const commentCounts = commentsData.data?.reduce((acc, comment) => {
+      acc[comment.project_id] = (acc[comment.project_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
+
     // Get profiles for each project separately
     const projectsWithOwners = await Promise.all(
       data.map(async (project) => {
@@ -215,6 +243,8 @@ export class SupabaseProvider implements ApiProvider {
             name: profile?.full_name || profile?.username || "Unknown User",
             avatar: profile?.avatar_url || "",
           },
+          likes: likeCounts[project.id] || 0,
+          comments: commentCounts[project.id] || 0,
           created_at: project.created_at,
           updated_at: project.updated_at
         };
@@ -570,6 +600,33 @@ export class SupabaseProvider implements ApiProvider {
     
     if (error) throw error;
     return count || 0;
+  }
+
+  async getUserLikeAndSaveStatus(projectId: string, userId: string): Promise<{ isLiked: boolean; isSaved: boolean }> {
+    try {
+      const [likeData, saveData] = await Promise.all([
+        supabase
+          .from('likes')
+          .select('id')
+          .eq('project_id', projectId)
+          .eq('user_id', userId)
+          .maybeSingle(),
+        supabase
+          .from('saves')
+          .select('id')
+          .eq('project_id', projectId)
+          .eq('user_id', userId)
+          .maybeSingle()
+      ]);
+
+      return {
+        isLiked: !!likeData.data,
+        isSaved: !!saveData.data
+      };
+    } catch (error) {
+      console.error('Error getting user like/save status:', error);
+      return { isLiked: false, isSaved: false };
+    }
   }
   
   // Chat methods

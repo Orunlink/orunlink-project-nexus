@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Heart, MessageSquare, Share2, Bookmark, UserPlus } from "lucide-react";
 import { Button } from "./button";
@@ -40,6 +40,18 @@ const ProjectCard = ({
   
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Load initial like/save states
+  useEffect(() => {
+    if (user) {
+      api.getUserLikeAndSaveStatus(id, user.id).then(({ isLiked, isSaved }) => {
+        setIsLiked(isLiked);
+        setIsSaved(isSaved);
+      }).catch(error => {
+        console.error('Error loading like/save status:', error);
+      });
+    }
+  }, [id, user]);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();

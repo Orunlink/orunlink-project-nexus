@@ -166,6 +166,7 @@ export interface ApiProvider {
   isProjectLiked(projectId: string): Promise<boolean>;
   isProjectSaved(projectId: string): Promise<boolean>;
   getProjectLikeCount(projectId: string): Promise<number>;
+  getUserLikeAndSaveStatus(projectId: string, userId: string): Promise<{ isLiked: boolean; isSaved: boolean }>;
   
   // Storage methods
   uploadFile(bucket: string, file: File, path?: string): Promise<FileUploadResult>;

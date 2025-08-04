@@ -187,6 +187,13 @@ export class MockAuthProvider implements ApiProvider {
     return Math.floor(Math.random() * 100);
   }
 
+  async getUserLikeAndSaveStatus(projectId: string, userId: string): Promise<{ isLiked: boolean; isSaved: boolean }> {
+    return {
+      isLiked: Math.random() > 0.5,
+      isSaved: Math.random() > 0.5
+    };
+  }
+
   // Storage methods
   async uploadFile(bucket: string, file: File, path?: string): Promise<FileUploadResult> {
     return {

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, MessageSquare, Share2, Bookmark, Handshake, X } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ import {
   DrawerClose
 } from "@/components/ui/drawer";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/services/api";
 
 interface Project {
   id: string;
@@ -44,7 +45,19 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const handleLike = () => {
+  // Load initial like/save states
+  useEffect(() => {
+    if (user) {
+      api.getUserLikeAndSaveStatus(project.id, user.id).then(({ isLiked, isSaved }) => {
+        setIsLiked(isLiked);
+        setIsSaved(isSaved);
+      }).catch(error => {
+        console.error('Error loading like/save status:', error);
+      });
+    }
+  }, [project.id, user]);
+
+  const handleLike = async () => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -54,11 +67,20 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
       return;
     }
     
-    setIsLiked(!isLiked);
-    setCurrentLikes(isLiked ? currentLikes - 1 : currentLikes + 1);
+    try {
+      const newLikeState = await api.toggleLike(project.id);
+      setIsLiked(newLikeState);
+      setCurrentLikes(newLikeState ? currentLikes + 1 : currentLikes - 1);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update like status",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -68,11 +90,20 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
       return;
     }
     
-    setIsSaved(!isSaved);
-    toast({
-      title: isSaved ? "Removed from favorites" : "Added to favorites",
-      description: isSaved ? "Project removed from your saved items" : "Project saved to your profile",
-    });
+    try {
+      const newSaveState = await api.toggleSave(project.id);
+      setIsSaved(newSaveState);
+      toast({
+        title: newSaveState ? "Added to favorites" : "Removed from favorites",
+        description: newSaveState ? "Project saved to your profile" : "Project removed from your saved items",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update save status",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = async () => {
