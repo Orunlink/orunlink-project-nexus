@@ -4,20 +4,8 @@ import { useState, useEffect } from "react";
 import ProfileSettingsMenu from "@/components/ui/ProfileSettingsMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/api";
-
-type ProjectItem = {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  owner: {
-    name: string;
-    avatar: string;
-  };
-  likes: number;
-  comments: number;
-  isVideo: boolean;
-};
+import { Project } from "@/services/api/types";
+import { isVideoUrl } from "@/utils/videoUtils";
 
 type TabType = "all" | "projects" | "videos" | "collaborations" | "saved";
 
@@ -28,177 +16,70 @@ const Profile = () => {
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [projectsCount, setProjectsCount] = useState(0);
+  const [userProjects, setUserProjects] = useState<Project[]>([]);
+  const [savedProjects, setSavedProjects] = useState<Project[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchUserData = async () => {
       if (!user) return;
       
       try {
         setIsLoading(true);
-        const profile = await api.getProfile(user.id);
+        
+        // Fetch user profile, projects, and saved projects in parallel
+        const [profile, projects, saved, projectCount] = await Promise.all([
+          api.getProfile(user.id),
+          api.getUserProjects(user.id),
+          api.getSavedProjects(user.id),
+          api.getUserProjectCount(user.id)
+        ]);
+        
         if (profile) {
           setUserData(profile);
         }
         
+        setUserProjects(projects);
+        setSavedProjects(saved);
+        setProjectsCount(projectCount);
+        
+        // TODO: Implement followers/following functionality
         setFollowerCount(0);
         setFollowingCount(0);
-        setProjectsCount(0);
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching user data:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserProfile();
+    fetchUserData();
   }, [user]);
 
-  const mockProjects = [
-    {
-      id: "1",
-      title: "Modern Mobile App UI Design",
-      description: "A sleek mobile app interface with dark mode and customizable themes.",
-      imageUrl: "https://images.unsplash.com/photo-1551650975-87deedd944c3",
-      owner: {
-        name: "Alex Johnson",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-      likes: 124,
-      comments: 23,
-      isVideo: false,
-    },
-    {
-      id: "2",
-      title: "E-commerce Website Redesign",
-      description: "Complete redesign of an e-commerce platform with focus on UX improvement.",
-      imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-      owner: {
-        name: "Alex Johnson",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-      likes: 89,
-      comments: 15,
-      isVideo: true,
-    },
-    {
-      id: "3",
-      title: "Smart Home IoT Dashboard",
-      description: "Dashboard for controlling smart home devices with analytics and automation.",
-      imageUrl: "https://images.unsplash.com/photo-1558655146-d09347e92766",
-      owner: {
-        name: "Alex Johnson",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-      likes: 201,
-      comments: 42,
-      isVideo: false,
-    },
-  ];
-
-  const mockCollaborations = [
-    {
-      id: "4",
-      title: "Fitness Tracking App",
-      description: "Mobile application for tracking workouts, nutrition, and health metrics.",
-      imageUrl: "https://images.unsplash.com/photo-1594882645126-14020914d58d",
-      owner: {
-        name: "Emma Taylor",
-        avatar: "https://randomuser.me/api/portraits/women/22.jpg",
-      },
-      likes: 156,
-      comments: 28,
-      isVideo: false,
-    },
-    {
-      id: "5",
-      title: "Cryptocurrency Exchange Platform",
-      description: "Secure platform for trading cryptocurrencies with real-time market data.",
-      imageUrl: "https://images.unsplash.com/photo-1639322537231-2f206e06af84",
-      owner: {
-        name: "Michael Lee",
-        avatar: "https://randomuser.me/api/portraits/men/42.jpg",
-      },
-      likes: 178,
-      comments: 31,
-      isVideo: false,
-    },
-  ];
-
-  const mockSavedProjects = [
-    {
-      id: "6",
-      title: "Social Media Analytics Tool",
-      description: "Tool for tracking and analyzing social media performance across platforms.",
-      imageUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7",
-      owner: {
-        name: "Olivia Wilson",
-        avatar: "https://randomuser.me/api/portraits/women/57.jpg",
-      },
-      likes: 112,
-      comments: 19,
-      isVideo: false,
-    },
-    {
-      id: "7",
-      title: "3D Product Visualization",
-      description: "Web-based platform for interactive 3D product visualization and customization.",
-      imageUrl: "https://images.unsplash.com/photo-1535350356005-fd52b3b524fb",
-      owner: {
-        name: "James Brown",
-        avatar: "https://randomuser.me/api/portraits/men/22.jpg",
-      },
-      likes: 95,
-      comments: 12,
-      isVideo: false,
-    },
-  ];
-
-  const mockVideos = [
-    {
-      id: "8",
-      title: "Animation Workflow Tutorial",
-      description: "Learn how to create smooth animations for your UI designs.",
-      imageUrl: "https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0",
-      owner: {
-        name: "Alex Johnson",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-      likes: 245,
-      comments: 37,
-      isVideo: true,
-    },
-    {
-      id: "9",
-      title: "Design System Overview",
-      description: "A walkthrough of creating a consistent design system for your products.",
-      imageUrl: "https://images.unsplash.com/photo-1618004912476-29818d81ae2e",
-      owner: {
-        name: "Alex Johnson",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-      likes: 189,
-      comments: 24,
-      isVideo: true,
-    },
-  ];
-
-  const allProjects = [...mockProjects, ...mockVideos];
+  const getProjectImage = (project: Project) => {
+    if (project.main_image) return project.main_image;
+    if (project.media_urls && project.media_urls.length > 0) return project.media_urls[0];
+    return "https://images.unsplash.com/photo-1551650975-87deedd944c3"; // Fallback image
+  };
 
   const renderProjects = () => {
+    const videos = userProjects.filter(p => isVideoUrl(getProjectImage(p)));
+    const nonVideos = userProjects.filter(p => !isVideoUrl(getProjectImage(p)));
+    
     switch (activeTab) {
       case "all":
-        return allProjects;
+        return userProjects;
       case "projects":
-        return mockProjects.filter(p => !p.isVideo);
+        return nonVideos;
       case "videos":
-        return mockVideos;
+        return videos;
       case "collaborations":
-        return mockCollaborations;
+        // TODO: Implement collaborations functionality
+        return [];
       case "saved":
-        return mockSavedProjects;
+        return savedProjects;
       default:
-        return allProjects;
+        return userProjects;
     }
   };
 
@@ -274,23 +155,43 @@ const Profile = () => {
         
         <div className="p-2">
           <div className="grid grid-cols-2 gap-2">
-            {renderProjects().map((project) => (
-              <div key={project.id} className="aspect-square overflow-hidden rounded-lg relative">
-                <img 
-                  src={project.imageUrl} 
-                  alt={project.title} 
-                  className="object-cover w-full h-full"
-                />
-                {project.isVideo && (
-                  <div className="absolute top-2 right-2 bg-black/30 rounded-full p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
+            {renderProjects().map((project) => {
+              const imageUrl = getProjectImage(project);
+              const isVideoFile = isVideoUrl(imageUrl);
+              
+              return (
+                <div key={project.id} className="aspect-square overflow-hidden rounded-lg relative">
+                  <img 
+                    src={imageUrl} 
+                    alt={project.title} 
+                    className="object-cover w-full h-full"
+                  />
+                  {isVideoFile && (
+                    <div className="absolute top-2 right-2 bg-black/30 rounded-full p-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-4 h-4">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </div>
+                  )}
+                  
+                  {/* Like count overlay */}
+                  <div className="absolute bottom-2 left-2 bg-black/50 rounded px-2 py-1">
+                    <span className="text-white text-xs font-medium">
+                      {project.likes || 0} ❤️
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
+          
+          {renderProjects().length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                {activeTab === "saved" ? "No saved projects yet" : "No projects yet"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </Layout>

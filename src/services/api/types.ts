@@ -30,6 +30,8 @@ export interface Project {
     name: string;
     avatar: string;
   };
+  likes?: number;
+  comments?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -167,6 +169,11 @@ export interface ApiProvider {
   isProjectSaved(projectId: string): Promise<boolean>;
   getProjectLikeCount(projectId: string): Promise<number>;
   getUserLikeAndSaveStatus(projectId: string, userId: string): Promise<{ isLiked: boolean; isSaved: boolean }>;
+  
+  // User-specific project methods
+  getUserProjects(userId: string): Promise<Project[]>;
+  getUserProjectCount(userId: string): Promise<number>;
+  getSavedProjects(userId: string): Promise<Project[]>;
   
   // Storage methods
   uploadFile(bucket: string, file: File, path?: string): Promise<FileUploadResult>;

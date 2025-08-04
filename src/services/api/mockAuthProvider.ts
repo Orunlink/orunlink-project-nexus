@@ -19,6 +19,7 @@ const mockSession: AuthSession = {
 };
 
 export class MockAuthProvider implements ApiProvider {
+  private mockProjects: Project[] = [];
   async signUp(email: string, password: string, userData?: Partial<User>): Promise<AuthSession> {
     console.log("Mock signup called with:", email);
     
@@ -207,6 +208,21 @@ export class MockAuthProvider implements ApiProvider {
   }
   
   async deleteFile(bucket: string, path: string): Promise<void> {}
+
+  // User-specific project methods
+  async getUserProjects(userId: string): Promise<Project[]> {
+    // Return projects filtered by user ID
+    return this.mockProjects.filter(p => p.owner_id === userId);
+  }
+
+  async getUserProjectCount(userId: string): Promise<number> {
+    return this.mockProjects.filter(p => p.owner_id === userId).length;
+  }
+
+  async getSavedProjects(userId: string): Promise<Project[]> {
+    // Mock implementation - return empty array
+    return [];
+  }
 }
 
 // Export singleton instance

@@ -909,6 +909,165 @@ export class SupabaseProvider implements ApiProvider {
       
     if (error) throw error;
   }
+
+  // User-specific project methods
+  async getUserProjects(userId: string): Promise<Project[]> {
+    const { data, error } = await supabase
+      .from("projects")
+      .select(`
+        *,
+        project_media(media_url, media_type, display_order)
+      `)
+      .eq("owner_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    if (!data) return [];
+
+    // Get project IDs for batch operations
+    const projectIds = data.map(p => p.id);
+    
+    // Get likes and comments count for all projects
+    const [likesData, commentsData] = await Promise.all([
+      supabase
+        .from("likes")
+        .select("project_id")
+        .in("project_id", projectIds),
+      supabase
+        .from("comments")
+        .select("project_id")
+        .in("project_id", projectIds)
+    ]);
+
+    // Count likes and comments per project
+    const likeCounts = likesData.data?.reduce((acc, like) => {
+      acc[like.project_id] = (acc[like.project_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
+
+    const commentCounts = commentsData.data?.reduce((acc, comment) => {
+      acc[comment.project_id] = (acc[comment.project_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
+
+    // Get profiles for each project separately  
+    const projectsWithOwners = await Promise.all(
+      data.map(async (project) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .eq("user_id", project.owner_id)
+          .single();
+
+        return {
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          owner_id: project.owner_id,
+          category: project.category,
+          tags: project.tags,
+          main_image: project.main_image,
+          media_urls: project.project_media?.map((media: any) => media.media_url) || [],
+          owner: {
+            name: profile?.full_name || profile?.username || "Unknown User",
+            avatar: profile?.avatar_url || ""
+          },
+          created_at: project.created_at,
+          updated_at: project.updated_at,
+          likes: likeCounts[project.id] || 0,
+          comments: commentCounts[project.id] || 0
+        };
+      })
+    );
+
+    return projectsWithOwners;
+  }
+
+  async getUserProjectCount(userId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from("projects")
+      .select("*", { count: "exact", head: true })
+      .eq("owner_id", userId);
+
+    if (error) throw error;
+    return count || 0;
+  }
+
+  async getSavedProjects(userId: string): Promise<Project[]> {
+    const { data, error } = await supabase
+      .from("saves")
+      .select(`
+        project_id,
+        projects(
+          *,
+          project_media(media_url, media_type, display_order)
+        )
+      `)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    if (!data) return [];
+
+    // Get project IDs for batch operations
+    const projectIds = data.map(s => s.projects.id);
+    
+    // Get likes and comments count for all projects
+    const [likesData, commentsData] = await Promise.all([
+      supabase
+        .from("likes")
+        .select("project_id")
+        .in("project_id", projectIds),
+      supabase
+        .from("comments")
+        .select("project_id")
+        .in("project_id", projectIds)
+    ]);
+
+    // Count likes and comments per project
+    const likeCounts = likesData.data?.reduce((acc, like) => {
+      acc[like.project_id] = (acc[like.project_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
+
+    const commentCounts = commentsData.data?.reduce((acc, comment) => {
+      acc[comment.project_id] = (acc[comment.project_id] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) || {};
+
+    // Get owner profiles for each project separately
+    const savedProjectsWithOwners = await Promise.all(
+      data.map(async (save) => {
+        const project = save.projects;
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, full_name, avatar_url")
+          .eq("user_id", project.owner_id)
+          .single();
+
+        return {
+          id: project.id,
+          title: project.title,
+          description: project.description,
+          owner_id: project.owner_id,
+          category: project.category,
+          tags: project.tags,
+          main_image: project.main_image,
+          media_urls: project.project_media?.map((media: any) => media.media_url) || [],
+          owner: {
+            name: profile?.full_name || profile?.username || "Unknown User",
+            avatar: profile?.avatar_url || ""
+          },
+          created_at: project.created_at,
+          updated_at: project.updated_at,
+          likes: likeCounts[project.id] || 0,
+          comments: commentCounts[project.id] || 0
+        };
+      })
+    );
+
+    return savedProjectsWithOwners;
+  }
 }
 
 // Export singleton instance

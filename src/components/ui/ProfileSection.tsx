@@ -70,6 +70,8 @@ const ProfileSection = ({
       // Update user profile with new avatar URL
       if (user) {
         await updateProfile({ avatar_url: result.url });
+        // Force a re-render by updating the input value
+        event.target.value = '';
       }
 
       toast({
