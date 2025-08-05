@@ -453,14 +453,36 @@ export class SupabaseProvider implements ApiProvider {
 
     if (error) throw error;
     
-    return data.map(request => ({
-      id: request.id,
-      project_id: request.project_id,
-      requester_id: request.requester_id,
-      owner_id: request.owner_id,
-      status: request.status as "pending" | "accepted" | "rejected",
-      created_at: request.created_at
-    }));
+    // Get profile and project data for each request
+    const requestsWithData = await Promise.all(
+      data.map(async (request) => {
+        const [{ data: requesterData }, { data: projectData }] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('id, username, full_name, avatar_url')
+            .eq('user_id', request.requester_id)
+            .single(),
+          supabase
+            .from('projects')
+            .select('id, title')
+            .eq('id', request.project_id)
+            .single()
+        ]);
+
+        return {
+          id: request.id,
+          project_id: request.project_id,
+          requester_id: request.requester_id,
+          owner_id: request.owner_id,
+          status: request.status as "pending" | "accepted" | "rejected",
+          created_at: request.created_at,
+          requester: requesterData,
+          project: projectData
+        };
+      })
+    );
+    
+    return requestsWithData;
   }
 
   async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> {

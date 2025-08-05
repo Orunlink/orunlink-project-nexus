@@ -14,6 +14,10 @@ interface Comment {
   created_at: string;
   user_id: string;
   project_id: string;
+  author?: {
+    name: string;
+    avatar: string;
+  };
   user?: {
     id: string;
     username: string;
@@ -42,7 +46,8 @@ const EnhancedCommentSection: React.FC<EnhancedCommentSectionProps> = ({
   useEffect(() => {
     if (isOpen && projectId) {
       fetchComments();
-      subscribeToComments();
+      const cleanup = subscribeToComments();
+      return cleanup;
     }
   }, [isOpen, projectId]);
 
@@ -90,6 +95,10 @@ const EnhancedCommentSection: React.FC<EnhancedCommentSectionProps> = ({
                 created_at: payload.new.created_at,
                 user_id: payload.new.user_id,
                 project_id: payload.new.project_id,
+                author: {
+                  name: profileData.full_name || profileData.username || 'Anonymous',
+                  avatar: profileData.avatar_url || ''
+                },
                 user: profileData
               };
               setComments(prev => [...prev, newComment]);
@@ -169,16 +178,16 @@ const EnhancedCommentSection: React.FC<EnhancedCommentSectionProps> = ({
           comments.map((comment) => (
             <div key={comment.id} className="flex gap-3">
               <Avatar className="w-8 h-8">
-                <AvatarImage src={comment.user?.avatar_url} />
+                <AvatarImage src={comment.author?.avatar || comment.user?.avatar_url} />
                 <AvatarFallback>
-                  {comment.user?.full_name?.charAt(0) || 'U'}
+                  {(comment.author?.name || comment.user?.full_name)?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-sm">
-                    {comment.user?.full_name || 'Unknown User'}
+                    {comment.author?.name || comment.user?.full_name || 'Unknown User'}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     @{comment.user?.username || 'user'}
