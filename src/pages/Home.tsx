@@ -45,8 +45,8 @@ const Home = () => {
                 name: "Unknown User",
                 avatar: "",
               },
-              likes: 0, // Real count will be fetched separately
-              comments: 0, // Real count will be fetched separately
+              likes: project.likes || 0,
+              comments: project.comments || 0,
               isVideo: isVideo,
             };
           });
