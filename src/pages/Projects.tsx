@@ -54,7 +54,7 @@ const Projects = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    navigate(`/project-chat/${projectId}`);
+    navigate(`/project/${projectId}/chat`);
   };
   
   const handleCreateProject = () => {
