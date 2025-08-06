@@ -189,25 +189,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      // Clean up auth state
-      cleanupAuthState();
+      setIsLoading(true);
       
-      // Attempt global sign out
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Ignore errors
-      }
-      
+      // Clear user state immediately
       setUser(null);
       setSession(null);
       
+      // Clean up auth state thoroughly
+      cleanupAuthState();
+      
+      // Attempt multiple sign out strategies
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        console.warn('Global signout failed:', err);
+      }
+      
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch (err) {
+        console.warn('Local signout failed:', err);
+      }
+      
+      // Additional cleanup
+      cleanupAuthState();
+      
+      toast({
+        title: 'Logged out successfully',
+        description: 'You have been signed out of your account',
+      });
+      
       // Force page reload for clean state
-      window.location.href = '/auth';
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     } catch (error) {
       console.error('Error signing out:', error);
+      toast({
+        title: 'Logout error',
+        description: 'There was an issue signing out, but you will be redirected',
+        variant: 'destructive',
+      });
       // Still redirect even if sign out fails
-      window.location.href = '/auth';
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 1000);
+    } finally {
+      setIsLoading(false);
     }
   };
 

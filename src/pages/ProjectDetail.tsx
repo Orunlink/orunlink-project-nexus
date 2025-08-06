@@ -158,19 +158,30 @@ const ProjectDetail = () => {
 
     setIsJoinRequestLoading(true);
     try {
-      await api.createJoinRequest(projectId, user.id, project.owner_id || '');
+      await api.createJoinRequest(projectId, user.id, project.owner_id);
       setJoinRequestSent(true);
       toast({
         title: "Join request sent",
         description: "Your request to join this project has been sent to the owner",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending join request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send join request",
-        variant: "destructive",
-      });
+      
+      // Handle specific error cases
+      if (error.message?.includes('duplicate')) {
+        toast({
+          title: "Request already sent",
+          description: "You have already sent a join request for this project",
+          variant: "destructive",
+        });
+        setJoinRequestSent(true);
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send join request",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsJoinRequestLoading(false);
     }
@@ -283,15 +294,15 @@ const ProjectDetail = () => {
             {/* Owner Info */}
             <div className="flex items-center gap-3">
               <img
-                src={project.owner.avatar || '/placeholder.svg'}
-                alt={project.owner.name}
+                src={project.owner?.avatar || '/placeholder.svg'}
+                alt={project.owner?.name || 'Project Owner'}
                 className="w-12 h-12 rounded-full"
                 onError={(e) => {
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
               <div>
-                <h3 className="font-semibold">{project.owner.name}</h3>
+                <h3 className="font-semibold">{project.owner?.name || 'Unknown User'}</h3>
                 <p className="text-sm text-muted-foreground">Project Owner</p>
               </div>
             </div>
@@ -357,17 +368,26 @@ const ProjectDetail = () => {
               </Button>
             </div>
 
-            {/* Join Request Button */}
-            {user && project.owner_id !== user.id && (
-              <Button
-                onClick={handleJoinRequest}
-                disabled={joinRequestSent || isJoinRequestLoading}
-                className="w-full"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                {joinRequestSent ? "Join Request Sent" : "Request to Join"}
-              </Button>
-            )}
+            {/* Chat and Join Request Buttons */}
+            <div className="space-y-3">
+              <Link to={`/project/${projectId}/chat`}>
+                <Button variant="outline" className="w-full">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Open Project Chat
+                </Button>
+              </Link>
+              
+              {user && project.owner_id !== user.id && (
+                <Button
+                  onClick={handleJoinRequest}
+                  disabled={joinRequestSent || isJoinRequestLoading}
+                  className="w-full"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  {isJoinRequestLoading ? "Sending..." : joinRequestSent ? "Join Request Sent" : "Request to Join"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import JoinRequestNotifications from "@/components/ui/JoinRequestNotifications";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Auth from "./pages/Auth";
@@ -18,7 +19,7 @@ import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import Explore from "./pages/Explore";
 import Projects from "./pages/Projects";
-import ProjectChat from "./pages/ProjectChat";
+import ProjectChatReal from "./pages/ProjectChatReal";
 import Create from "./pages/Create";
 import AccountSettings from "./pages/AccountSettings";
 import EditProfile from "./pages/EditProfile";
@@ -32,9 +33,10 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
+      <ErrorBoundary>
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/auth" element={<Auth />} />
@@ -64,7 +66,7 @@ const App = () => (
               path="/project/:projectId/chat" 
               element={
                 <ProtectedRoute>
-                  <ProjectChat />
+                  <ProjectChatReal />
                 </ProtectedRoute>
               } 
             />
@@ -157,12 +159,13 @@ const App = () => (
               } 
             />
             <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-          <Sonner />
-          <JoinRequestNotifications />
-        </AuthProvider>
-      </BrowserRouter>
+            </Routes>
+            <Toaster />
+            <Sonner />
+            <JoinRequestNotifications />
+          </AuthProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
 );
