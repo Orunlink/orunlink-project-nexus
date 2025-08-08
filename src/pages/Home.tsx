@@ -48,6 +48,7 @@ const Home = () => {
               likes: project.likes || 0,
               comments: project.comments || 0,
               isVideo: isVideo,
+              ownerId: project.owner_id,
             };
           });
           setProjects(formattedProjects);

@@ -23,12 +23,13 @@ interface Project {
   description: string;
   imageUrl: string;
   owner: {
-    name: string;
-    avatar: string;
+    name?: string;
+    avatar?: string;
   };
   likes: number;
   comments: number;
   isVideo?: boolean;
+  ownerId?: string;
 }
 
 interface VerticalVideoCardProps {
@@ -41,6 +42,7 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
   const [isSaved, setIsSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(project.likes);
+  const [isJoining, setIsJoining] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -146,9 +148,61 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
     setShowComments(!showComments);
   };
 
-  const handleJoinClick = () => {
-    navigate(`/project/${project.id}`);
-  };
+const handleJoinClick = async () => {
+  if (!user) {
+    toast({
+      title: "Sign in required",
+      description: "Please sign in to request to join this project",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  if (project.ownerId && user.id === project.ownerId) {
+    toast({
+      title: "Cannot join",
+      description: "You can’t join your own project",
+    });
+    return;
+  }
+
+  try {
+    setIsJoining(true);
+    const alreadyRequested = await api.checkExistingJoinRequest(project.id, user.id);
+    if (alreadyRequested) {
+      toast({
+        title: "Request already sent",
+        description: "Your join request is pending approval",
+      });
+      return;
+    }
+
+    const ownerId = project.ownerId;
+    if (!ownerId) {
+      toast({
+        title: "Owner not found",
+        description: "Could not find the project owner",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await api.createJoinRequest(project.id, user.id, ownerId);
+    toast({
+      title: "Request sent",
+      description: "The project owner has been notified",
+    });
+  } catch (error) {
+    console.error('Error creating join request:', error);
+    toast({
+      title: "Error",
+      description: "Failed to send join request",
+      variant: "destructive",
+    });
+  } finally {
+    setIsJoining(false);
+  }
+};
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
@@ -193,8 +247,10 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
         
         <div className="flex flex-col items-center">
           <button 
-            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1"
+            className="w-7 h-7 flex items-center justify-center bg-black bg-opacity-50 rounded-full mb-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleJoinClick}
+            disabled={isJoining}
+            aria-busy={isJoining}
           >
             <Handshake className="w-3 h-3 text-white" />
           </button>
@@ -228,9 +284,9 @@ const VerticalVideoCard = ({ project, isActive }: VerticalVideoCardProps) => {
       <div className="absolute bottom-24 left-4 right-20 z-10">
         <div className="flex items-center space-x-2 mb-2">
           <Avatar className="w-8 h-8 border-2 border-white">
-            <img src={project.owner.avatar} alt={project.owner.name} />
+            <img src={project.owner?.avatar || '/placeholder.svg'} alt={project.owner?.name || 'Unknown User'} />
           </Avatar>
-          <span className="text-white font-medium text-sm">{project.owner.name}</span>
+          <span className="text-white font-medium text-sm">{project.owner?.name || 'Unknown User'}</span>
         </div>
         <p className="text-white text-xs mb-1">{project.title}</p>
         <p className="text-white text-xs opacity-80">{project.description}</p>

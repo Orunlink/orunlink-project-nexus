@@ -14,14 +14,18 @@ import { supabase } from "@/integrations/supabase/client";
 const ProjectChatReal = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const [messageText, setMessageText] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [participants, setParticipants] = useState<ChatParticipant[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [project, setProject] = useState<any>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
-  const { toast } = useToast();
+const [messageText, setMessageText] = useState("");
+const [messages, setMessages] = useState<ChatMessage[]>([]);
+const [participants, setParticipants] = useState<ChatParticipant[]>([]);
+const [isLoading, setIsLoading] = useState(true);
+const [project, setProject] = useState<any>(null);
+const [isMember, setIsMember] = useState(false);
+const [isOwner, setIsOwner] = useState(false);
+const [joinPending, setJoinPending] = useState(false);
+const [isRequestingJoin, setIsRequestingJoin] = useState(false);
+const messagesEndRef = useRef<HTMLDivElement>(null);
+const { user } = useAuth();
+const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

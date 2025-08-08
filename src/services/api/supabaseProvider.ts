@@ -420,29 +420,43 @@ export class SupabaseProvider implements ApiProvider {
   }
 
   // Join requests methods
-  async createJoinRequest(projectId: string, requesterId: string, ownerId: string): Promise<JoinRequest | null> {
-    const { data, error } = await supabase
-      .from("join_requests")
-      .insert({
-        project_id: projectId,
-        requester_id: requesterId,
-        owner_id: ownerId,
-        status: "pending"
-      })
-      .select()
-      .single();
+async createJoinRequest(projectId: string, requesterId: string, ownerId: string): Promise<JoinRequest | null> {
+  const { data, error } = await supabase
+    .from("join_requests")
+    .insert({
+      project_id: projectId,
+      requester_id: requesterId,
+      owner_id: ownerId,
+      status: "pending"
+    })
+    .select()
+    .single();
 
-    if (error) throw error;
-    
-    return {
-      id: data.id,
-      project_id: data.project_id,
-      requester_id: data.requester_id,
-      owner_id: data.owner_id,
-      status: data.status as "pending" | "accepted" | "rejected",
-      created_at: data.created_at
-    };
+  if (error) throw error;
+
+  // Best-effort notify the owner
+  try {
+    await this.createNotification({
+      user_id: ownerId,
+      type: 'join_request',
+      title: 'New join request',
+      message: 'Someone requested to join your project',
+      related_id: projectId,
+      action_url: `/project/${projectId}`,
+    });
+  } catch (e) {
+    console.warn('Failed to create owner notification', e);
   }
+  
+  return {
+    id: data.id,
+    project_id: data.project_id,
+    requester_id: data.requester_id,
+    owner_id: data.owner_id,
+    status: data.status as "pending" | "accepted" | "rejected",
+    created_at: data.created_at
+  };
+}
 
   async getPendingJoinRequestsForOwner(ownerId: string): Promise<JoinRequest[]> {
     const { data, error } = await supabase
@@ -485,25 +499,75 @@ export class SupabaseProvider implements ApiProvider {
     return requestsWithData;
   }
 
-  async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> {
-    const { data, error } = await supabase
-      .from("join_requests")
-      .update({ status })
-      .eq("id", requestId)
-      .select()
-      .single();
+async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"): Promise<JoinRequest | null> {
+  const { data, error } = await supabase
+    .from("join_requests")
+    .update({ status })
+    .eq("id", requestId)
+    .select()
+    .single();
 
-    if (error) throw error;
-    
-    return {
-      id: data.id,
-      project_id: data.project_id,
-      requester_id: data.requester_id,
-      owner_id: data.owner_id,
-      status: data.status as "pending" | "accepted" | "rejected",
-      created_at: data.created_at
-    };
+  if (error) throw error;
+
+  try {
+    if (status === "accepted") {
+      // Ensure requester is a chat participant
+      const { data: existingParticipant } = await supabase
+        .from("chat_participants")
+        .select("id")
+        .eq("project_id", data.project_id)
+        .eq("user_id", data.requester_id)
+        .maybeSingle();
+
+      if (!existingParticipant) {
+        await supabase.from("chat_participants").insert({
+          project_id: data.project_id,
+          user_id: data.requester_id,
+        });
+      }
+
+      // Notify requester of acceptance
+      try {
+        await this.createNotification({
+          user_id: data.requester_id,
+          type: 'join_request',
+          title: 'Request accepted',
+          message: 'You can now join the project chat.',
+          related_id: data.project_id,
+          action_url: `/project/${data.project_id}/chat`,
+        });
+      } catch (e) {
+        // Ignore notification errors
+        console.warn('Failed to create acceptance notification', e);
+      }
+    } else if (status === "rejected") {
+      // Notify requester of rejection
+      try {
+        await this.createNotification({
+          user_id: data.requester_id,
+          type: 'join_request',
+          title: 'Request declined',
+          message: 'Your request to join was declined.',
+          related_id: data.project_id,
+          action_url: `/project/${data.project_id}`,
+        });
+      } catch (e) {
+        console.warn('Failed to create rejection notification', e);
+      }
+    }
+  } catch (postProcessError) {
+    console.warn('Post-update processing failed', postProcessError);
   }
+  
+  return {
+    id: data.id,
+    project_id: data.project_id,
+    requester_id: data.requester_id,
+    owner_id: data.owner_id,
+    status: data.status as "pending" | "accepted" | "rejected",
+    created_at: data.created_at
+  };
+}
 
   async checkExistingJoinRequest(projectId: string, userId: string): Promise<boolean> {
     const { data, error } = await supabase
