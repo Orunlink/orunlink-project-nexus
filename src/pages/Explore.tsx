@@ -6,7 +6,7 @@ import Layout from "@/components/layout/Layout";
 import BottomNav from "@/components/layout/BottomNav";
 import { api } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
-
+import { useAuth } from "@/contexts/AuthContext";
 const Explore = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -15,6 +15,27 @@ const Explore = () => {
   const [isLoading, setIsLoading] = useState(true);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [affinity, setAffinity] = useState<Record<string, number>>({});
+  // Simple client-side ranking
+  const rankProjects = (list: any[], affinityMap: Record<string, number>) => {
+    if (!list || list.length === 0) return [] as any[];
+    const times = list.map((p) => new Date(p.created_at || Date.now()).getTime());
+    const minT = Math.min(...times);
+    const maxT = Math.max(...times);
+    const maxLikes = Math.max(1, ...list.map((p) => p.likes || 0));
+    const maxComments = Math.max(1, ...list.map((p) => p.comments || 0));
+    const normalize = (v: number, min: number, max: number) => (max === min ? 1 : (v - min) / (max - min));
+    return [...list]
+      .map((p) => {
+        const affinityScore = affinityMap[p.category || 'Other'] || 0;
+        const recencyScore = normalize(new Date(p.created_at || Date.now()).getTime(), minT, maxT);
+        const engagementScore = 0.5 * ((p.likes || 0) / maxLikes) + 0.5 * ((p.comments || 0) / maxComments);
+        const score = 0.5 * affinityScore + 0.3 * recencyScore + 0.2 * engagementScore;
+        return { ...p, __score: score };
+      })
+      .sort((a, b) => b.__score - a.__score);
+  };
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -48,10 +69,32 @@ const Explore = () => {
               likes: project.likes || 0,
               comments: project.comments || 0,
               isVideo: isVideo,
+              category: project.category || 'Other',
+              created_at: project.created_at,
             };
           });
+          // Build user category affinity from saved projects
+          const affinityMap: Record<string, number> = {};
+          if (user) {
+            try {
+              const saved = await api.getSavedProjects(user.id);
+              const total = saved.length;
+              if (total > 0) {
+                saved.forEach((p: any) => {
+                  const cat = p.category || 'Other';
+                  affinityMap[cat] = (affinityMap[cat] || 0) + 1;
+                });
+                Object.keys(affinityMap).forEach((k) => {
+                  affinityMap[k] = affinityMap[k] / total;
+                });
+              }
+            } catch (e) {
+              // ignore affinity errors
+            }
+          }
+          setAffinity(affinityMap);
           setProjects(formattedProjects);
-          setFilteredProjects(formattedProjects);
+          setFilteredProjects(rankProjects(formattedProjects, affinityMap));
         } else {
           setProjects([]);
           setFilteredProjects([]);
@@ -94,7 +137,7 @@ const Explore = () => {
     setSearchTerm(term);
     
     if (term.trim() === "") {
-      setFilteredProjects(projects);
+      setFilteredProjects(rankProjects(projects, affinity));
     } else {
       const filtered = projects.filter(
         (project) =>
@@ -102,7 +145,7 @@ const Explore = () => {
           project.description.toLowerCase().includes(term.toLowerCase()) ||
           project.owner.name.toLowerCase().includes(term.toLowerCase())
       );
-      setFilteredProjects(filtered);
+      setFilteredProjects(rankProjects(filtered, affinity));
     }
   };
 

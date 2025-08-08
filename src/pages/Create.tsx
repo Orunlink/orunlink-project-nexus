@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
@@ -141,13 +142,24 @@ const Create = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  placeholder="e.g., Design, Technology, Art"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="bg-white/70 border-blue-100/50"
-                />
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="bg-white/70 border-blue-100/50">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Science">Science</SelectItem>
+                    <SelectItem value="Art">Art</SelectItem>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Design">Design</SelectItem>
+                    <SelectItem value="Music">Music</SelectItem>
+                    <SelectItem value="Film">Film</SelectItem>
+                    <SelectItem value="Gaming">Gaming</SelectItem>
+                    <SelectItem value="Education">Education</SelectItem>
+                    <SelectItem value="Health">Health</SelectItem>
+                    <SelectItem value="Business">Business</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
