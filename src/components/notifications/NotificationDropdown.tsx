@@ -37,10 +37,10 @@ const NotificationDropdown = () => {
     if (!user) return;
 
     loadNotifications();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
 
     return () => {
-      supabase.removeAllChannels();
+      if (typeof cleanup === 'function') cleanup();
     };
   }, [user]);
 

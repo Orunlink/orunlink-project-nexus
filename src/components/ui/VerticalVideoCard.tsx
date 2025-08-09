@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Heart, MessageSquare, Share2, Bookmark, Handshake, X } from "lucide-react";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { shareProject } from "@/services/projectService";
 import { useNavigate } from "react-router-dom";
@@ -284,7 +284,8 @@ const handleJoinClick = async () => {
       <div className="absolute bottom-24 left-4 right-20 z-10">
         <div className="flex items-center space-x-2 mb-2">
           <Avatar className="w-8 h-8 border-2 border-white">
-            <img src={project.owner?.avatar || '/placeholder.svg'} alt={project.owner?.name || 'Unknown User'} />
+            <AvatarImage src={project.owner?.avatar || '/placeholder.svg'} alt={project.owner?.name || 'Unknown User'} loading="lazy" />
+            <AvatarFallback>{(project.owner?.name || 'U').charAt(0)}</AvatarFallback>
           </Avatar>
           <span className="text-white font-medium text-sm">{project.owner?.name || 'Unknown User'}</span>
         </div>

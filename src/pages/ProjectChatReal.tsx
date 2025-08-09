@@ -39,10 +39,10 @@ const { toast } = useToast();
     if (!projectId || !user) return;
 
     loadChatData();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
 
     return () => {
-      supabase.removeAllChannels();
+      if (typeof cleanup === 'function') cleanup();
     };
   }, [projectId, user]);
 

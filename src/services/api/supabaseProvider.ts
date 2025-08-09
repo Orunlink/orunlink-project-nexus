@@ -182,74 +182,70 @@ export class SupabaseProvider implements ApiProvider {
   }
   
   // Project methods
-  async getProjects(): Promise<Project[]> {
+  async getProjects(options?: { limit?: number; offset?: number }): Promise<Project[]> {
+    const limit = options?.limit ?? 8;
+    const offset = options?.offset ?? 0;
+
     const { data, error } = await supabase
       .from("projects")
       .select(`
         *,
         project_media(media_url, media_type, display_order)
       `)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (error) throw error;
-
     if (!data) return [];
 
-    // Get project IDs for batch operations
-    const projectIds = data.map(p => p.id);
-    
-    // Fetch like counts and comment counts for all projects
-    const [likesData, commentsData] = await Promise.all([
+    const projectIds = data.map((p) => p.id);
+    const ownerIds = Array.from(new Set(data.map((p) => p.owner_id)));
+
+    const [likesData, commentsData, profilesRes] = await Promise.all([
+      supabase.from("likes").select("project_id").in("project_id", projectIds),
+      supabase.from("comments").select("project_id").in("project_id", projectIds),
       supabase
-        .from('likes')
-        .select('project_id')
-        .in('project_id', projectIds),
-      supabase
-        .from('comments')
-        .select('project_id')
-        .in('project_id', projectIds)
+        .from("profiles")
+        .select("user_id, username, full_name, avatar_url")
+        .in("user_id", ownerIds),
     ]);
 
-    // Count likes and comments for each project
-    const likeCounts = likesData.data?.reduce((acc, like) => {
-      acc[like.project_id] = (acc[like.project_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>) || {};
+    const likeCounts =
+      likesData.data?.reduce((acc, like) => {
+        acc[like.project_id] = (acc[like.project_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
 
-    const commentCounts = commentsData.data?.reduce((acc, comment) => {
-      acc[comment.project_id] = (acc[comment.project_id] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>) || {};
+    const commentCounts =
+      commentsData.data?.reduce((acc, comment) => {
+        acc[comment.project_id] = (acc[comment.project_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
 
-    // Get profiles for each project separately
-    const projectsWithOwners = await Promise.all(
-      data.map(async (project) => {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("username, full_name, avatar_url")
-          .eq("user_id", project.owner_id)
-          .single();
+    const profileMap = new Map<string, any>();
+    profilesRes.data?.forEach((p: any) => profileMap.set(p.user_id, p));
 
-        return {
-          id: project.id,
-          title: project.title,
-          description: project.description,
-          owner_id: project.owner_id,
-          category: project.category,
-          tags: project.tags,
-          main_image: project.main_image,
-          media_urls: project.project_media?.map((m: any) => m.media_url) || [],
-          owner: {
-            name: profile?.full_name || profile?.username || "Unknown User",
-            avatar: profile?.avatar_url || "",
-          },
-          likes: likeCounts[project.id] || 0,
-          comments: commentCounts[project.id] || 0,
-          created_at: project.created_at,
-          updated_at: project.updated_at
-        };
-      })
-    );
+    const projectsWithOwners = data.map((project) => {
+      const profile = profileMap.get(project.owner_id);
+      return {
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        owner_id: project.owner_id,
+        category: project.category,
+        tags: project.tags,
+        main_image: project.main_image,
+        media_urls: project.project_media?.map((m: any) => m.media_url) || [],
+        owner: {
+          name: profile?.full_name || profile?.username || "Unknown User",
+          avatar: profile?.avatar_url || "",
+        },
+        likes: likeCounts[project.id] || 0,
+        comments: commentCounts[project.id] || 0,
+        created_at: project.created_at,
+        updated_at: project.updated_at,
+      };
+    });
 
     return projectsWithOwners;
   }
@@ -405,6 +401,27 @@ export class SupabaseProvider implements ApiProvider {
       .select("username, full_name, avatar_url")
       .eq("user_id", data.user_id)
       .single();
+
+    // Notify project owner (if not self)
+    try {
+      const { data: project } = await supabase
+        .from('projects')
+        .select('owner_id, title')
+        .eq('id', projectId)
+        .single();
+      if (project && project.owner_id !== userId) {
+        await this.createNotification({
+          user_id: project.owner_id,
+          type: 'comment',
+          title: 'New comment',
+          message: `${profile?.full_name || profile?.username || 'Someone'} commented on ${project.title}`,
+          related_id: projectId,
+          action_url: `/project/${projectId}`,
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to create comment notification', e);
+    }
     
     return {
       id: data.id,
