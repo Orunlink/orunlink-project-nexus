@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, X } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -76,12 +76,7 @@ const NotificationDropdown = () => {
           const newNotification = payload.new as Notification;
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
-          
-          // Show toast for new notification
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-          });
+          toast({ title: newNotification.title, description: newNotification.message });
         }
       )
       .on(
@@ -94,12 +89,8 @@ const NotificationDropdown = () => {
         },
         (payload) => {
           const updatedNotification = payload.new as Notification;
-          setNotifications(prev => 
-            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
-          );
-          if (updatedNotification.is_read) {
-            setUnreadCount(prev => Math.max(0, prev - 1));
-          }
+          setNotifications(prev => prev.map(n => n.id === updatedNotification.id ? updatedNotification : n));
+          if (updatedNotification.is_read) setUnreadCount(prev => Math.max(0, prev - 1));
         }
       )
       .subscribe();

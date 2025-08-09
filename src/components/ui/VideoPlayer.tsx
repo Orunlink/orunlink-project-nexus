@@ -92,6 +92,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         alt="Media content"
         className={className}
         style={style}
+        loading="lazy"
         onError={(e) => {
           e.currentTarget.src = '/placeholder.svg';
         }}

@@ -611,24 +611,39 @@ async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"
       .single();
     
     if (existing) {
-      // Unlike
       const { error } = await supabase
         .from("likes")
         .delete()
         .eq("id", existing.id);
-      
       if (error) throw error;
       return false;
     } else {
-      // Like
       const { error } = await supabase
         .from("likes")
-        .insert({
-          user_id: session.user.id,
-          project_id: projectId
-        });
-      
+        .insert({ user_id: session.user.id, project_id: projectId });
       if (error) throw error;
+
+      // Notify project owner (if not self)
+      try {
+        const { data: project } = await supabase
+          .from('projects')
+          .select('owner_id, title')
+          .eq('id', projectId)
+          .single();
+        if (project && project.owner_id !== session.user.id) {
+          await this.createNotification({
+            user_id: project.owner_id,
+            type: 'like',
+            title: 'New like',
+            message: `${session.user.full_name || 'Someone'} liked ${project.title}`,
+            related_id: projectId,
+            action_url: `/project/${projectId}`,
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to create like notification', e);
+      }
+
       return true;
     }
   }
@@ -1170,6 +1185,95 @@ async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"
     );
 
     return savedProjectsWithOwners;
+  }
+
+  async getUserGroupChats() {
+    const session = await this.getSession();
+    if (!session?.user?.id) throw new Error("User not authenticated");
+
+    // Projects where user is a participant
+    const { data: myParticipants } = await supabase
+      .from('chat_participants')
+      .select('*')
+      .eq('user_id', session.user.id);
+
+    const participantProjectIds = (myParticipants || []).map((p: any) => p.project_id);
+
+    // Projects the user owns
+    const { data: owned } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('owner_id', session.user.id);
+
+    const ownedProjectIds = (owned || []).map((p: any) => p.id);
+
+    const projectIds = Array.from(new Set([...participantProjectIds, ...ownedProjectIds]));
+    if (projectIds.length === 0) return [];
+
+    // Basic project info
+    const { data: projectsData } = await supabase
+      .from('projects')
+      .select('id, title, main_image')
+      .in('id', projectIds);
+
+    // Participants count
+    const { data: allParticipants } = await supabase
+      .from('chat_participants')
+      .select('project_id')
+      .in('project_id', projectIds);
+
+    const participantsCount: Record<string, number> = {};
+    (allParticipants || []).forEach((p: any) => {
+      participantsCount[p.project_id] = (participantsCount[p.project_id] || 0) + 1;
+    });
+
+    // Last read map for the user
+    const lastReadMap: Record<string, string | null> = {};
+    (myParticipants || []).forEach((p: any) => {
+      lastReadMap[p.project_id] = p.last_read_at || null;
+    });
+
+    // Latest messages (best-effort, may be empty if not participant due to RLS)
+    const { data: recentMessages } = await supabase
+      .from('chat_messages')
+      .select('id, project_id, content, created_at')
+      .in('project_id', participantProjectIds)
+      .order('created_at', { ascending: false })
+      .limit(200);
+
+    const lastByProject: Record<string, { content: string; created_at: string }> = {};
+    (recentMessages || []).forEach((m: any) => {
+      if (!lastByProject[m.project_id]) {
+        lastByProject[m.project_id] = { content: m.content, created_at: m.created_at };
+      }
+    });
+
+    // Unread counts per project (only for projects where we have last_read_at)
+    const unreadCounts: Record<string, number> = {};
+    await Promise.all(
+      projectIds.map(async (pid) => {
+        const lastRead = lastReadMap[pid];
+        if (!lastRead) { unreadCounts[pid] = 0; return; }
+        const { count } = await supabase
+          .from('chat_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', pid)
+          .gt('created_at', lastRead);
+        unreadCounts[pid] = count || 0;
+      })
+    );
+
+    return (projectsData || []).map((p: any) => ({
+      project_id: p.id,
+      title: p.title,
+      avatar: p.main_image,
+      last_message: lastByProject[p.id]?.content,
+      last_message_time: lastByProject[p.id]?.created_at
+        ? new Date(lastByProject[p.id].created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : undefined,
+      unread_count: unreadCounts[p.id] || 0,
+      participants_count: participantsCount[p.id] || 0,
+    }));
   }
 }
 

@@ -32,6 +32,7 @@ interface Project {
   ownerId?: string;
 }
 
+
 interface VerticalVideoCardProps {
   project: Project;
   isActive: boolean;

@@ -36,6 +36,16 @@ export interface Project {
   updated_at?: string;
 }
 
+export interface GroupChatSummary {
+  project_id: string;
+  title: string;
+  avatar?: string;
+  last_message?: string;
+  last_message_time?: string;
+  unread_count: number;
+  participants_count: number;
+}
+
 export interface Comment {
   id: string;
   project_id: string;
@@ -130,7 +140,7 @@ export interface ApiProvider {
   updateProfile(profile: Partial<User>): Promise<User>;
 
   // Project methods
-  getProjects(): Promise<Project[]>;
+  getProjects(options?: { limit?: number; offset?: number }): Promise<Project[]>;
   getProjectById(id: string): Promise<Project | null>;
   createProject(project: Partial<Project>): Promise<Project>;
   updateProject(id: string, data: Partial<Project>): Promise<Project>;
@@ -151,6 +161,7 @@ export interface ApiProvider {
   sendProjectChatMessage(projectId: string, content: string): Promise<ChatMessage>;
   getProjectChatParticipants(projectId: string): Promise<ChatParticipant[]>;
   addProjectChatParticipant(projectId: string, userId: string): Promise<void>;
+  getUserGroupChats(): Promise<GroupChatSummary[]>;
   
   // Private messaging methods
   getPrivateMessages(userId: string): Promise<ChatMessage[]>;

@@ -14,47 +14,43 @@ const Home = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [projects, setProjects] = useState(fallbackProjects);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const pageSize = 8;
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const initialLoad = async () => {
       try {
         setIsLoading(true);
-        const apiProjects = await api.getProjects();
-        
-        if (apiProjects && apiProjects.length > 0) {
-          // Transform API projects to the format expected by VerticalVideoCard
-          const formattedProjects = apiProjects.map(project => {
-            // Better video detection
+        const apiProjects = await api.getProjects({ limit: pageSize, offset: 0 });
+        setProjects(
+          (apiProjects || []).map(project => {
             const mediaUrl = project.main_image || (project.media_urls && project.media_urls[0]) || "";
-            const isVideo = project.media_urls?.some(url => 
-              url.toLowerCase().includes('.mp4') || 
-              url.toLowerCase().includes('.webm') || 
+            const isVideo = project.media_urls?.some(url =>
+              url.toLowerCase().includes('.mp4') ||
+              url.toLowerCase().includes('.webm') ||
               url.toLowerCase().includes('.mov') ||
               url.toLowerCase().includes('.avi') ||
               url.toLowerCase().includes('video')
             ) || false;
-            
             return {
               id: project.id,
               title: project.title || "Untitled Project",
               description: project.description || "No description provided",
               imageUrl: mediaUrl,
-              owner: project.owner || {
-                name: "Unknown User",
-                avatar: "",
-              },
+              owner: project.owner || { name: "Unknown User", avatar: "" },
               likes: project.likes || 0,
               comments: project.comments || 0,
-              isVideo: isVideo,
+              isVideo,
               ownerId: project.owner_id,
             };
-          });
-          setProjects(formattedProjects);
-        } else {
-          setProjects([]);
-        }
+          })
+        );
+        setHasMore((apiProjects || []).length === pageSize);
+        setOffset((apiProjects || []).length);
       } catch (error) {
         console.error("Error fetching projects:", error);
         toast({
@@ -63,22 +59,65 @@ const Home = () => {
           variant: "destructive",
         });
         setProjects([]);
+        setHasMore(false);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProjects();
+    initialLoad();
   }, [toast]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const fetchMore = async () => {
+    if (isFetchingMore || !hasMore) return;
+    try {
+      setIsFetchingMore(true);
+      const apiProjects = await api.getProjects({ limit: pageSize, offset });
+      const formatted = (apiProjects || []).map(project => {
+        const mediaUrl = project.main_image || (project.media_urls && project.media_urls[0]) || "";
+        const isVideo = project.media_urls?.some(url =>
+          url.toLowerCase().includes('.mp4') ||
+          url.toLowerCase().includes('.webm') ||
+          url.toLowerCase().includes('.mov') ||
+          url.toLowerCase().includes('.avi') ||
+          url.toLowerCase().includes('video')
+        ) || false;
+        return {
+          id: project.id,
+          title: project.title || "Untitled Project",
+          description: project.description || "No description provided",
+          imageUrl: mediaUrl,
+          owner: project.owner || { name: "Unknown User", avatar: "" },
+          likes: project.likes || 0,
+          comments: project.comments || 0,
+          isVideo,
+          ownerId: project.owner_id,
+        };
+      });
+      setProjects(prev => [...prev, ...formatted]);
+      setHasMore((apiProjects || []).length === pageSize);
+      setOffset(prev => prev + (apiProjects || []).length);
+    } catch (error) {
+      console.error("Error loading more projects:", error);
+      setHasMore(false);
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
+
+  const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {
     const container = e.currentTarget;
     const scrollPosition = container.scrollTop;
     const projectHeight = window.innerHeight;
     const newIndex = Math.floor(scrollPosition / projectHeight);
-    
+
     if (newIndex !== activeIndex && newIndex < projects.length) {
       setActiveIndex(newIndex);
+    }
+
+    const nearBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 2 * projectHeight;
+    if (nearBottom) {
+      await fetchMore();
     }
   };
 
@@ -100,10 +139,13 @@ const Home = () => {
             >
               <VerticalVideoCard
                 project={project}
-                isActive={index === activeIndex}
+                isActive={index === activeIndex || index === activeIndex + 1}
               />
             </div>
           ))}
+          {isFetchingMore && (
+            <div className="w-full h-24 flex items-center justify-center text-white">Loading more…</div>
+          )}
         </div>
       )}
 
