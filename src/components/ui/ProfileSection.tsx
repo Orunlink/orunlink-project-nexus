@@ -17,6 +17,8 @@ interface ProfileSectionProps {
   projects: number;
   username?: string;
   isOwnProfile?: boolean;
+  onFollow?: () => void;
+  isFollowing?: boolean;
 }
 
 const ProfileSection = ({
@@ -28,6 +30,8 @@ const ProfileSection = ({
   projects,
   username = "",
   isOwnProfile = false,
+  onFollow,
+  isFollowing = false,
 }: ProfileSectionProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -152,8 +156,11 @@ const ProfileSection = ({
             </Button>
           ) : (
             <>
-              <Button className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium">
-                Follow
+              <Button 
+                className={`flex-1 ${isFollowing ? 'bg-gray-500 hover:bg-gray-600' : 'bg-orunlink-purple hover:bg-orunlink-dark'} text-white font-medium`}
+                onClick={onFollow}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
               </Button>
               <Button className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200">
                 Message

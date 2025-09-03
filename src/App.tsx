@@ -27,6 +27,7 @@ import NotificationSettings from "./pages/NotificationSettings";
 import PrivacySecurity from "./pages/PrivacySecurity";
 import HelpSupport from "./pages/HelpSupport";
 import Moderation from "./pages/Moderation";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
@@ -155,6 +156,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <HelpSupport />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/user/:userId" 
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
                 </ProtectedRoute>
               } 
             />

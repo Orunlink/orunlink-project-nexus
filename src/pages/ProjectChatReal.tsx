@@ -3,13 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, Send, Settings, AlertCircle } from "lucide-react";
+import { ArrowLeft, Users, Send, Settings, AlertCircle, X } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/api";
 import { ChatMessage, ChatParticipant } from "@/services/api/types";
 import { supabase } from "@/integrations/supabase/client";
+import ChatSettings from "@/components/chat/ChatSettings";
+import MessageItem from "@/components/chat/MessageItem";
 
 const ProjectChatReal = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -23,6 +25,8 @@ const [isMember, setIsMember] = useState(false);
 const [isOwner, setIsOwner] = useState(false);
 const [joinPending, setJoinPending] = useState(false);
 const [isRequestingJoin, setIsRequestingJoin] = useState(false);
+const [showSettings, setShowSettings] = useState(false);
+const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
 const messagesEndRef = useRef<HTMLDivElement>(null);
 const { user } = useAuth();
 const { toast } = useToast();
@@ -179,7 +183,7 @@ const { toast } = useToast();
 
   if (isLoading) {
     return (
-      <Layout hideNavbar hideFooter hideBottomNav hideHeader>
+      <Layout hideNavbar hideBottomNav hideHeader>
         <div className="flex items-center justify-center h-screen">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
         </div>
@@ -189,7 +193,7 @@ const { toast } = useToast();
 
   if (!project) {
     return (
-      <Layout hideNavbar hideFooter hideBottomNav hideHeader>
+      <Layout hideNavbar hideBottomNav hideHeader>
         <div className="flex flex-col items-center justify-center h-screen">
           <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold mb-2">Project not found</h2>
@@ -203,7 +207,7 @@ const { toast } = useToast();
   }
 
   return (
-    <Layout hideNavbar hideFooter hideBottomNav hideHeader>
+    <Layout hideNavbar hideBottomNav hideHeader>
       <div className="flex flex-col h-screen">
         {/* Chat header */}
         <div className="flex items-center justify-between p-3 bg-primary text-primary-foreground">

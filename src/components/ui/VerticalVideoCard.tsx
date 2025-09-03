@@ -284,7 +284,10 @@ const handleJoinClick = async () => {
       {/* Bottom user info - adjusted to account for new navigation position */}
       <div className="absolute bottom-24 left-4 right-20 z-10">
         <div className="flex items-center space-x-2 mb-2">
-          <Avatar className="w-8 h-8 border-2 border-white">
+          <Avatar 
+            className="w-8 h-8 border-2 border-white cursor-pointer" 
+            onClick={() => project.ownerId && navigate(`/user/${project.ownerId}`)}
+          >
             <AvatarImage src={project.owner?.avatar || '/placeholder.svg'} alt={project.owner?.name || 'Unknown User'} loading="lazy" />
             <AvatarFallback>{(project.owner?.name || 'U').charAt(0)}</AvatarFallback>
           </Avatar>

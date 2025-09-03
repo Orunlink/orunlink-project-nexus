@@ -63,7 +63,7 @@ const Projects = () => {
 
   if (isLoading) {
     return (
-      <Layout hideNavbar={true} hideFooter={true}>
+      <Layout hideNavbar={true}>
         <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen flex items-center justify-center">
           <p>Loading your projects...</p>
         </div>
@@ -72,7 +72,7 @@ const Projects = () => {
   }
 
   return (
-    <Layout hideNavbar={true} hideFooter={true}>
+    <Layout hideNavbar={true}>
       <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Projects</h1>

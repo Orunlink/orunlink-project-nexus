@@ -129,7 +129,7 @@ const Moderation = () => {
 
   if (!authorized) {
     return (
-      <Layout hideNavbar={true} hideFooter={true} hideHeader={true} hideBottomNav={true}>
+      <Layout hideNavbar={true} hideHeader={true} hideBottomNav={true}>
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
           <Card className="w-[350px]">
             <CardHeader>

@@ -1,15 +1,20 @@
 import Layout from "@/components/layout/Layout";
 import ProfileSection from "@/components/ui/ProfileSection";
 import { useState, useEffect } from "react";
-import ProfileSettingsMenu from "@/components/ui/ProfileSettingsMenu";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/api";
 import { Project } from "@/services/api/types";
 import { isVideoUrl } from "@/utils/videoUtils";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
-type TabType = "all" | "projects" | "videos" | "collaborations" | "saved";
+type TabType = "all" | "projects" | "videos" | "collaborations";
 
-const Profile = () => {
+const UserProfile = () => {
+  const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
@@ -17,22 +22,20 @@ const Profile = () => {
   const [followingCount, setFollowingCount] = useState(0);
   const [projectsCount, setProjectsCount] = useState(0);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
-  const [savedProjects, setSavedProjects] = useState<Project[]>([]);
-  const { user } = useAuth();
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!user) return;
+      if (!userId) return;
       
       try {
         setIsLoading(true);
         
-        // Fetch user profile, projects, and saved projects in parallel
-        const [profile, projects, saved, projectCount] = await Promise.all([
-          api.getProfile(user.id),
-          api.getUserProjects(user.id),
-          api.getSavedProjects(user.id),
-          api.getUserProjectCount(user.id)
+        // Fetch user profile and projects in parallel
+        const [profile, projects, projectCount] = await Promise.all([
+          api.getProfile(userId),
+          api.getUserProjects(userId),
+          api.getUserProjectCount(userId)
         ]);
         
         if (profile) {
@@ -40,12 +43,12 @@ const Profile = () => {
         }
         
         setUserProjects(projects);
-        setSavedProjects(saved);
         setProjectsCount(projectCount);
         
         // TODO: Implement followers/following functionality
         setFollowerCount(0);
         setFollowingCount(0);
+        setIsFollowing(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -54,7 +57,13 @@ const Profile = () => {
     };
 
     fetchUserData();
-  }, [user]);
+  }, [userId]);
+
+  const handleFollow = () => {
+    // TODO: Implement follow functionality
+    setIsFollowing(!isFollowing);
+    setFollowerCount(prev => isFollowing ? prev - 1 : prev + 1);
+  };
 
   const getProjectImage = (project: Project) => {
     if (project.main_image) return project.main_image;
@@ -76,8 +85,6 @@ const Profile = () => {
       case "collaborations":
         // TODO: Implement collaborations functionality
         return [];
-      case "saved":
-        return savedProjects;
       default:
         return userProjects;
     }
@@ -95,15 +102,28 @@ const Profile = () => {
     );
   }
 
+  if (!userData) {
+    return (
+      <Layout hideNavbar={true}>
+        <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-500">User not found</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout hideNavbar={true}>
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="relative">
           <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-6 w-6" />
+            </Button>
+            <h1 className="text-lg font-semibold">{userData?.username || 'Profile'}</h1>
             <div className="w-10"></div>
-            <div className="absolute top-3 right-4">
-              <ProfileSettingsMenu userId={user?.id || ""} avatar={userData?.avatar_url || ""} />
-            </div>
           </div>
           
           <ProfileSection
@@ -114,7 +134,9 @@ const Profile = () => {
             following={followingCount}
             projects={projectsCount}
             username={userData?.username || ""}
-            isOwnProfile={true}
+            isOwnProfile={false}
+            onFollow={handleFollow}
+            isFollowing={isFollowing}
           />
           
           <div className="flex justify-center border-b border-gray-100">
@@ -143,12 +165,6 @@ const Profile = () => {
               >
                 Collabs
               </TabButton>
-              <TabButton 
-                active={activeTab === "saved"}
-                onClick={() => setActiveTab("saved")}
-              >
-                Saved
-              </TabButton>
             </div>
           </div>
         </div>
@@ -160,7 +176,8 @@ const Profile = () => {
               const isVideoFile = isVideoUrl(imageUrl);
               
               return (
-                <div key={project.id} className="aspect-square overflow-hidden rounded-lg relative">
+                <div key={project.id} className="aspect-square overflow-hidden rounded-lg relative cursor-pointer"
+                     onClick={() => navigate(`/project/${project.id}`)}>
                   <img 
                     src={imageUrl} 
                     alt={project.title} 
@@ -187,9 +204,7 @@ const Profile = () => {
           
           {renderProjects().length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-500">
-                {activeTab === "saved" ? "No saved projects yet" : "No projects yet"}
-              </p>
+              <p className="text-gray-500">No projects yet</p>
             </div>
           )}
         </div>
@@ -222,4 +237,4 @@ const TabButton = ({
   );
 };
 
-export default Profile;
+export default UserProfile;
