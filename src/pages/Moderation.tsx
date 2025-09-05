@@ -129,7 +129,7 @@ const Moderation = () => {
 
   if (!authorized) {
     return (
-      <Layout hideNavbar={true} hideHeader={true} hideBottomNav={true}>
+      <Layout hideHeader={true} hideBottomNav={true}>
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
           <Card className="w-[350px]">
             <CardHeader>
@@ -160,7 +160,7 @@ const Moderation = () => {
   }
 
   return (
-    <Layout hideNavbar={true} hideBottomNav={true}>
+    <Layout hideBottomNav={true}>
       <div className="container mx-auto py-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">

@@ -45,7 +45,7 @@ const AccountSettings = () => {
   };
 
   return (
-    <Layout hideNavbar={true}>
+    <Layout>
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">
           <Button 

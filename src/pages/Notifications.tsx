@@ -122,7 +122,7 @@ const Notifications = () => {
   };
 
   return (
-    <Layout hideNavbar={true}>
+    <Layout>
       <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6 pt-20">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>

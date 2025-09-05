@@ -183,7 +183,7 @@ const { toast } = useToast();
 
   if (isLoading) {
     return (
-      <Layout hideNavbar hideBottomNav hideHeader>
+      <Layout hideBottomNav hideHeader>
         <div className="flex items-center justify-center h-screen">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
         </div>
@@ -193,7 +193,7 @@ const { toast } = useToast();
 
   if (!project) {
     return (
-      <Layout hideNavbar hideBottomNav hideHeader>
+      <Layout hideBottomNav hideHeader>
         <div className="flex flex-col items-center justify-center h-screen">
           <AlertCircle className="w-16 h-16 text-muted-foreground mb-4" />
           <h2 className="text-2xl font-bold mb-2">Project not found</h2>
@@ -207,7 +207,7 @@ const { toast } = useToast();
   }
 
   return (
-    <Layout hideNavbar hideBottomNav hideHeader>
+    <Layout hideBottomNav hideHeader>
       <div className="flex flex-col h-screen">
         {/* Chat header */}
         <div className="flex items-center justify-between p-3 bg-primary text-primary-foreground">

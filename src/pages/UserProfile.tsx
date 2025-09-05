@@ -92,7 +92,7 @@ const UserProfile = () => {
 
   if (isLoading) {
     return (
-      <Layout hideNavbar={true}>
+      <Layout>
         <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
           <div className="text-center">
             <p className="text-gray-500">Loading profile...</p>
@@ -104,7 +104,7 @@ const UserProfile = () => {
 
   if (!userData) {
     return (
-      <Layout hideNavbar={true}>
+      <Layout>
         <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
           <div className="text-center">
             <p className="text-gray-500">User not found</p>
@@ -115,7 +115,7 @@ const UserProfile = () => {
   }
 
   return (
-    <Layout hideNavbar={true}>
+    <Layout>
       <div className="max-w-md mx-auto bg-white min-h-screen">
         <div className="relative">
           <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100">

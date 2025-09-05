@@ -98,174 +98,236 @@ const Messages = () => {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    if (isMobile) setShowMobileChat(true);
-    setActiveTab('direct');
+    if (isMobile) {
+      setShowMobileChat(true);
+    }
   };
 
   const handleBackToList = () => {
-    setShowMobileChat(false);
     setSelectedConversation(null);
-    setActiveTab('groups');
+    setShowMobileChat(false);
   };
-
-  // Filter conversations based on search term
-  const filteredConversations = conversations.filter(conversation =>
-    conversation.participant_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Messages</h1>
-        <div className="flex h-[calc(100vh-8rem)]">
-          {/* Conversation List */}
-          <div className={`${
-            isMobile 
-              ? (showMobileChat ? 'hidden' : 'w-full') 
-              : 'w-1/3'
-          } border-r bg-card flex flex-col`}>
-            <div className="p-4 border-b">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'groups' | 'direct')}>
-                <TabsList className="grid grid-cols-2 w-full">
-                  <TabsTrigger value="groups">Group Chats</TabsTrigger>
-                  <TabsTrigger value="direct">Direct</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
+      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+        {/* Left Sidebar - Message List */}
+        <div className={`${
+          isMobile && showMobileChat ? 'hidden' : 'flex'
+        } flex-col w-full ${isMobile ? '' : 'md:w-80 border-r border-border'}`}>
+          
+          {/* Header */}
+          <div className="p-4 border-b border-border bg-background/95 backdrop-blur">
+            <h1 className="text-2xl font-bold mb-4">Messages</h1>
+            
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'groups' | 'direct')}>
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="groups" className="text-sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  Groups
+                </TabsTrigger>
+                <TabsTrigger value="direct" className="text-sm">Direct</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
             {/* Search */}
-            <div className="p-4 border-b">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search conversations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
+          </div>
 
-            {/* Lists */}
-            <div className="flex-1 overflow-y-auto">
-              {activeTab === 'groups' ? (
-                loadingGroups ? (
+          {/* Conversations List */}
+          <div className="flex-1 overflow-y-auto">
+            <Tabs value={activeTab}>
+              <TabsContent value="groups" className="mt-0">
+                {loadingGroups ? (
                   <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading group chats...</p>
                   </div>
-                ) : groupChats.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <p>No group chats yet</p>
-                  </div>
-                ) : (
-                  groupChats
-                    .filter(gc => gc.title.toLowerCase().includes(searchTerm.toLowerCase()))
-                    .map((gc) => (
-                      <div
-                        key={gc.project_id}
-                        onClick={() => navigate(`/project/${gc.project_id}/chat`)}
-                        className={`p-4 border-b cursor-pointer hover:bg-accent transition-colors`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={gc.avatar} />
-                            <AvatarFallback>{gc.title.charAt(0)}</AvatarFallback>
+                ) : groupChats.length > 0 ? (
+                  <div className="space-y-1 p-2">
+                    {groupChats
+                      .filter(chat => 
+                        chat.title.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((chat) => (
+                        <div
+                          key={chat.project_id}
+                          className="flex items-center p-4 rounded-lg hover:bg-muted cursor-pointer transition-all duration-200"
+                          onClick={() => navigate(`/project/${chat.project_id}/chat`)}
+                        >
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={chat.avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {chat.title.charAt(0)}
+                            </AvatarFallback>
                           </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-medium truncate">{gc.title}</h4>
-                              <span className="text-xs text-muted-foreground">{gc.last_message_time}</span>
+                          <div className="ml-3 flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium truncate">
+                                {chat.title}
+                              </p>
+                              <span className="text-xs text-muted-foreground">
+                                {chat.participants_count} members
+                              </span>
                             </div>
-                            <p className={`text-sm text-muted-foreground truncate mt-1 ${gc.unread_count > 0 ? 'font-medium text-foreground' : ''}`}>
-                              {gc.last_message || 'No messages yet'}
+                            <p className="text-sm text-muted-foreground truncate">
+                              {chat.last_message || 'No messages yet'}
                             </p>
                           </div>
-                          {gc.unread_count > 0 && (
-                            <div className="min-w-[20px] h-5 px-2 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
-                              {gc.unread_count}
+                          {chat.unread_count > 0 && (
+                            <div className="ml-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center shrink-0">
+                              {chat.unread_count}
                             </div>
                           )}
                         </div>
-                      </div>
-                    ))
-                )
-              ) : (
-                loading ? (
-                  <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  </div>
-                ) : filteredConversations.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    <p>No conversations yet</p>
-                    <p className="text-sm mt-2">Start a conversation by messaging someone!</p>
+                      ))
+                  }
                   </div>
                 ) : (
-                  filteredConversations.map((conversation) => (
-                    <div
-                      key={conversation.id}
-                      onClick={() => handleSelectConversation(conversation)}
-                      className={`p-4 border-b cursor-pointer hover:bg-accent transition-colors ${
-                        selectedConversation?.id === conversation.id ? 'bg-accent' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10">
-                          <AvatarImage src={conversation.participant_avatar} />
-                          <AvatarFallback>{conversation.participant_name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h4 className={`font-medium truncate ${
-                              conversation.unread_count > 0 ? 'font-semibold' : ''
-                            }`}>
-                              {conversation.participant_name}
-                            </h4>
-                            <span className="text-xs text-muted-foreground">
-                              {conversation.last_message_time}
-                            </span>
-                          </div>
-                          <p className={`text-sm text-muted-foreground truncate mt-1 ${
-                            conversation.unread_count > 0 ? 'font-medium text-foreground' : ''
-                          }`}>
-                            {conversation.last_message}
-                          </p>
-                        </div>
-                        {conversation.unread_count > 0 && (
-                          <div className="w-2 h-2 bg-primary rounded-full" />
-                        )}
-                      </div>
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Users className="h-8 w-8 text-muted-foreground" />
                     </div>
-                  ))
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Chat Area */}
-          <div className={`${
-            isMobile 
-              ? (showMobileChat ? 'w-full' : 'hidden') 
-              : 'flex-1'
-          } flex flex-col`}>
-            {selectedConversation ? (
-              <PrivateChat
-                recipientId={selectedConversation.participant_id}
-                recipientName={selectedConversation.participant_name}
-                recipientAvatar={selectedConversation.participant_avatar}
-                onBack={handleBackToList}
-              />
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                    <Send className="w-8 h-8" />
+                    <h3 className="font-semibold mb-2">No group chats yet</h3>
+                    <p className="text-sm text-muted-foreground">Join a project to start chatting</p>
                   </div>
-                  <p className="text-lg font-medium">Select a conversation</p>
-                  <p className="text-sm">Choose from your existing conversations or start a new one</p>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="direct" className="mt-0">
+                {loading ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading conversations...</p>
+                  </div>
+                ) : conversations.length > 0 ? (
+                  <div className="space-y-1 p-2">
+                    {conversations
+                      .filter(conv => 
+                        conv.participant_name.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className={`flex items-center p-4 rounded-lg cursor-pointer transition-all duration-200 ${
+                            selectedConversation?.id === conversation.id
+                              ? 'bg-primary/10 border border-primary/20'
+                              : 'hover:bg-muted'
+                          }`}
+                          onClick={() => handleSelectConversation(conversation)}
+                        >
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={conversation.participant_avatar} />
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {conversation.participant_name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="ml-3 flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium truncate">
+                                {conversation.participant_name}
+                              </p>
+                              {conversation.last_message_time && (
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(conversation.last_message_time).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {conversation.last_message || 'No messages yet'}
+                            </p>
+                          </div>
+                          {conversation.unread_count > 0 && (
+                            <div className="ml-2 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center shrink-0">
+                              {conversation.unread_count}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    }
+                  </div>
+                ) : (
+                  <div className="p-12 text-center">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Send className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-semibold mb-2">No direct messages yet</h3>
+                    <p className="text-sm text-muted-foreground">Start a conversation with someone</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Right Content - Chat Area */}
+        <div className={`${
+          isMobile && !showMobileChat ? 'hidden' : 'flex'
+        } flex-1 flex-col bg-background`}>
+          {selectedConversation ? (
+            <div className="h-full flex flex-col">
+              {/* Chat Header */}
+              <div className="p-4 border-b border-border bg-background/95 backdrop-blur">
+                <div className="flex items-center">
+                  {isMobile && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="mr-2"
+                      onClick={handleBackToList}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={selectedConversation.participant_avatar} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {selectedConversation.participant_name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3">
+                    <h2 className="text-lg font-semibold">
+                      {selectedConversation.participant_name}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">Active now</p>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
+              
+              {/* Chat Messages */}
+              <div className="flex-1">
+                <PrivateChat 
+                  recipientId={selectedConversation.participant_id}
+                  recipientName={selectedConversation.participant_name}
+                  recipientAvatar={selectedConversation.participant_avatar}
+                  onBack={handleBackToList}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4 p-8">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                  <Send className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold">Select a conversation</h3>
+                  <p className="text-muted-foreground">
+                    Choose a conversation from the sidebar to start messaging
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
