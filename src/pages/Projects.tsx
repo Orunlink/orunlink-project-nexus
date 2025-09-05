@@ -63,84 +63,88 @@ const Projects = () => {
 
   if (isLoading) {
     return (
-      <Layout hideNavbar={true}>
-        <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen flex items-center justify-center">
-          <p>Loading your projects...</p>
+      <Layout>
+        <div className="container mx-auto px-4 py-6 flex items-center justify-center min-h-[400px]">
+          <div className="text-center space-y-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading your projects...</p>
+          </div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout hideNavbar={true}>
-      <div className="max-w-md mx-auto p-4 pt-16 pb-20 bg-gray-50 min-h-screen">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Projects</h1>
+    <Layout>
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-foreground">My Projects</h1>
           <Button 
-            className="bg-green-600 hover:bg-green-700 rounded-full"
             onClick={handleCreateProject}
+            className="bg-primary hover:bg-primary/90"
           >
-            <Plus className="mr-1 h-5 w-5" />
+            <Plus className="mr-2 h-4 w-4" />
             New Project
           </Button>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <Button variant="outline" className="h-16 bg-gray-200 hover:bg-gray-300">
-            <div className="flex flex-col items-center">
-              <span className="font-semibold">Join Projects</span>
-              <span className="text-xs text-gray-500">Use invite code</span>
-            </div>
-          </Button>
-          <Button variant="outline" className="h-16 bg-gray-200 hover:bg-gray-300">
-            <div className="flex flex-col items-center">
-              <span className="font-semibold">Find Partners</span>
-              <span className="text-xs text-gray-500">Browse community</span>
-            </div>
-          </Button>
-        </div>
-        
-        <h2 className="text-lg font-medium mb-4">Your Active Projects</h2>
-        
-        <div className="space-y-4">
-          {projects.length > 0 ? (
-            projects.map((project) => (
+        {projects.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
               <Card 
                 key={project.id}
-                className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                className="p-6 cursor-pointer hover:shadow-lg transition-all duration-200 border border-border"
                 onClick={() => handleProjectClick(project.id)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="flex">
-                      <Avatar className="w-10 h-10 border-2 border-white">
-                        <AvatarFallback>{project.title?.[0] || 'P'}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <div className="ml-3">
-                      <div className="flex items-center">
-                        <h3 className="font-medium">{project.title}</h3>
-                      </div>
-                      <p className="text-sm text-gray-500 truncate max-w-[200px]">
-                        {project.description || "No description"}
-                      </p>
-                    </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={project.main_image} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {project.title?.[0] || 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground">
+                      <MessageSquare className="h-5 w-5" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MessageSquare className="h-5 w-5" />
-                  </Button>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg text-foreground line-clamp-1">
+                      {project.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {project.description || "No description provided"}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+                    {project.category && (
+                      <Badge variant="secondary" className="text-xs">
+                        {project.category}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </Card>
-            ))
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">You don't have any projects yet</p>
-              <Button onClick={handleCreateProject} className="bg-orunlink-purple hover:bg-orunlink-dark">
-                Create Your First Project
+            ))}
+          </div>
+        ) : (
+          <Card className="p-12 text-center">
+            <div className="space-y-4">
+              <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                <Plus className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">No projects yet</h3>
+                <p className="text-muted-foreground">Create your first project to get started</p>
+              </div>
+              <Button onClick={handleCreateProject} className="bg-primary hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Project
               </Button>
             </div>
-          )}
-        </div>
+          </Card>
+        )}
       </div>
     </Layout>
   );

@@ -18,21 +18,6 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-// Auth state cleanup utility
-const cleanupAuthState = () => {
-  // Remove all Supabase auth keys from localStorage
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  // Remove from sessionStorage if in use
-  Object.keys(sessionStorage || {}).forEach((key) => {
-    if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-      sessionStorage.removeItem(key);
-    }
-  });
-};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -110,27 +95,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      
-      // Clean up existing state
-      cleanupAuthState();
-      
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
       const session = await api.signIn(email, password);
-      setUser(session.user);
       
       toast({
         title: 'Login successful!',
         description: 'Welcome back to Orunlink',
       });
-      
-      // Force page reload for clean state
-      window.location.href = '/home';
     } catch (error: any) {
       console.error('Error signing in:', error);
       toast({
@@ -147,27 +117,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData?: Partial<User>) => {
     try {
       setIsLoading(true);
-      
-      // Clean up existing state
-      cleanupAuthState();
-      
-      // Attempt global sign out first
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-      
       const result = await api.signUp(email, password, userData);
       
       if (result?.user) {
-        setUser(result.user);
         toast({
           title: 'Account created!',
           description: 'Welcome to Orunlink! Your profile is being set up.',
         });
-        // Force page reload for clean state
-        window.location.href = '/home';
       } else {
         toast({
           title: 'Account created!',
@@ -190,50 +146,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setIsLoading(true);
+      await api.signOut();
       
-      // Clear user state immediately
       setUser(null);
       setSession(null);
-      
-      // Clean up auth state thoroughly
-      cleanupAuthState();
-      
-      // Attempt multiple sign out strategies
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        console.warn('Global signout failed:', err);
-      }
-      
-      try {
-        await supabase.auth.signOut({ scope: 'local' });
-      } catch (err) {
-        console.warn('Local signout failed:', err);
-      }
-      
-      // Additional cleanup
-      cleanupAuthState();
       
       toast({
         title: 'Logged out successfully',
         description: 'You have been signed out of your account',
       });
-      
-      // Force page reload for clean state
-      setTimeout(() => {
-        window.location.href = '/auth';
-      }, 100);
     } catch (error) {
       console.error('Error signing out:', error);
       toast({
         title: 'Logout error',
-        description: 'There was an issue signing out, but you will be redirected',
+        description: 'There was an issue signing out',
         variant: 'destructive',
       });
-      // Still redirect even if sign out fails
-      setTimeout(() => {
-        window.location.href = '/auth';
-      }, 1000);
     } finally {
       setIsLoading(false);
     }

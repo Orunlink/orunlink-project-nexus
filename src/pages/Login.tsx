@@ -20,29 +20,7 @@ const Login = () => {
   const { toast } = useToast();
   const { signIn, signUp, isAuthenticated } = useAuth();
   
-  // Demo credentials for easy login
-  const [showDemoHelper, setShowDemoHelper] = useState(true);
-  const demoEmail = "demo@orunlink.com";
-  const demoPassword = "password123";
-
-  const handleUseDemoAccount = async () => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    
-    try {
-      setIsLoading(true);
-      await signIn(demoEmail, demoPassword);
-      toast({
-        title: "Success!",
-        description: "Logged in with demo account",
-      });
-      navigate('/home');
-    } catch (error: any) {
-      setError(error.message || "Could not log in with demo account");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Demo credentials helper removed - users should create accounts
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -86,39 +64,6 @@ const Login = () => {
             <p className="mt-2 text-gray-600">Sign in to your Orunlink account</p>
           </div>
           
-          {showDemoHelper && (
-            <Alert className="mb-4 bg-blue-50 border-blue-200">
-              <div className="flex flex-col space-y-2">
-                <p className="text-sm text-blue-800">
-                  For demo purposes, you can use these credentials:
-                </p>
-                <div className="flex justify-between items-center">
-                  <div className="text-xs">
-                    <div><strong>Email:</strong> {demoEmail}</div>
-                    <div><strong>Password:</strong> {demoPassword}</div>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="text-xs border-blue-400 text-blue-700 hover:bg-blue-100"
-                    onClick={handleUseDemoAccount}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Logging in..." : "Use Demo Account"}
-                  </Button>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="ghost"
-                  className="text-xs self-end"
-                  onClick={() => setShowDemoHelper(false)}
-                  disabled={isLoading}
-                >
-                  Hide
-                </Button>
-              </div>
-            </Alert>
-          )}
           
           {error && (
             <Alert variant="destructive" className="mb-4">
