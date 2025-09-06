@@ -59,6 +59,7 @@ export type Database = {
           joined_at: string
           last_read_at: string | null
           project_id: string
+          role: string
           user_id: string
         }
         Insert: {
@@ -66,6 +67,7 @@ export type Database = {
           joined_at?: string
           last_read_at?: string | null
           project_id: string
+          role?: string
           user_id: string
         }
         Update: {
@@ -73,6 +75,7 @@ export type Database = {
           joined_at?: string
           last_read_at?: string | null
           project_id?: string
+          role?: string
           user_id?: string
         }
         Relationships: []
@@ -98,6 +101,66 @@ export type Database = {
           id?: string
           project_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      group_chat_settings: {
+        Row: {
+          avatar_url: string | null
+          background_style: string | null
+          created_at: string
+          description: string | null
+          id: string
+          notifications_enabled: boolean | null
+          project_id: string
+          theme_color: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          background_style?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notifications_enabled?: boolean | null
+          project_id: string
+          theme_color?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          background_style?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notifications_enabled?: boolean | null
+          project_id?: string
+          theme_color?: string | null
+          title?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -331,7 +394,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_follower_count: {
+        Args: { user_id: string }
+        Returns: number
+      }
+      get_following_count: {
+        Args: { user_id: string }
+        Returns: number
+      }
+      is_following: {
+        Args: { follower_id: string; following_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
