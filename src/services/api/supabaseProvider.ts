@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, ChatParticipant, Notification, FileUploadResult } from "./types";
+import { ApiProvider, AuthSession, User, Project, Comment, JoinRequest, ChatMessage, ChatParticipant, Notification, FileUploadResult, Follow, GroupChatSettings, GroupChatSummary } from "./types";
 
 export class SupabaseProvider implements ApiProvider {
   // Auth methods
@@ -835,6 +835,7 @@ async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"
         
         return {
           ...participant,
+          role: participant.role as 'creator' | 'admin' | 'member',
           user: profile ? {
             username: profile.username || '',
             full_name: profile.full_name || '',
@@ -847,12 +848,13 @@ async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"
     return participantsWithUsers;
   }
   
-  async addProjectChatParticipant(projectId: string, userId: string): Promise<void> {
+  async addProjectChatParticipant(projectId: string, userId: string, role: 'creator' | 'admin' | 'member' = 'member'): Promise<void> {
     const { error } = await supabase
       .from("chat_participants")
       .insert({
         project_id: projectId,
-        user_id: userId
+        user_id: userId,
+        role: role
       });
     
     if (error) throw error;
@@ -1274,6 +1276,159 @@ async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"
       unread_count: unreadCounts[p.id] || 0,
       participants_count: participantsCount[p.id] || 0,
     }));
+  }
+
+  // ============== FOLLOWING SYSTEM METHODS ==============
+  
+  async followUser(followingId: string): Promise<Follow> {
+    const session = await supabase.auth.getSession();
+    if (!session.data.session?.user) throw new Error('Not authenticated');
+    
+    const { data, error } = await supabase
+      .from('follows')
+      .insert({
+        follower_id: session.data.session.user.id,
+        following_id: followingId
+      })
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    
+    // Get the following user's profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username, full_name, avatar_url')
+      .eq('user_id', followingId)
+      .single();
+    
+    return {
+      ...data,
+      following: profile || { username: '', full_name: '', avatar_url: '' }
+    };
+  }
+
+  async unfollowUser(followingId: string): Promise<void> {
+    const session = await supabase.auth.getSession();
+    if (!session.data.session?.user) throw new Error('Not authenticated');
+    
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .eq('follower_id', session.data.session.user.id)
+      .eq('following_id', followingId);
+    
+    if (error) throw error;
+  }
+
+  async getFollowers(userId: string): Promise<Follow[]> {
+    const { data: follows, error } = await supabase
+      .from('follows')
+      .select('*')
+      .eq('following_id', userId);
+    
+    if (error) throw error;
+    if (!follows) return [];
+    
+    // Get follower profiles
+    const followerIds = follows.map(f => f.follower_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, username, full_name, avatar_url')
+      .in('user_id', followerIds);
+    
+    return follows.map(follow => ({
+      ...follow,
+      follower: profiles?.find(p => p.user_id === follow.follower_id) || 
+        { username: '', full_name: '', avatar_url: '' }
+    }));
+  }
+
+  async getFollowing(userId: string): Promise<Follow[]> {
+    const { data: follows, error } = await supabase
+      .from('follows')
+      .select('*')
+      .eq('follower_id', userId);
+    
+    if (error) throw error;
+    if (!follows) return [];
+    
+    // Get following profiles
+    const followingIds = follows.map(f => f.following_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, username, full_name, avatar_url')
+      .in('user_id', followingIds);
+    
+    return follows.map(follow => ({
+      ...follow,
+      following: profiles?.find(p => p.user_id === follow.following_id) || 
+        { username: '', full_name: '', avatar_url: '' }
+    }));
+  }
+
+  async getFollowerCount(userId: string): Promise<number> {
+    const { data, error } = await supabase
+      .rpc('get_follower_count', { user_id: userId });
+    
+    if (error) throw error;
+    return data || 0;
+  }
+
+  async getFollowingCount(userId: string): Promise<number> {
+    const { data, error } = await supabase
+      .rpc('get_following_count', { user_id: userId });
+    
+    if (error) throw error;
+    return data || 0;
+  }
+
+  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .rpc('is_following', { follower_id: followerId, following_id: followingId });
+    
+    if (error) throw error;
+    return data || false;
+  }
+
+  // ============== GROUP CHAT SETTINGS METHODS ==============
+  
+  async getGroupChatSettings(projectId: string): Promise<GroupChatSettings | null> {
+    const { data, error } = await supabase
+      .from('group_chat_settings')
+      .select('*')
+      .eq('project_id', projectId)
+      .maybeSingle();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async updateGroupChatSettings(projectId: string, settings: Partial<GroupChatSettings>): Promise<GroupChatSettings> {
+    const { data, error } = await supabase
+      .from('group_chat_settings')
+      .upsert({
+        project_id: projectId,
+        ...settings,
+        updated_at: new Date().toISOString()
+      })
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    return data;
+  }
+
+  async getUserChatRole(projectId: string, userId: string): Promise<'creator' | 'admin' | 'member' | null> {
+    const { data, error } = await supabase
+      .from('chat_participants')
+      .select('role')
+      .eq('project_id', projectId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (error) throw error;
+    return data?.role as 'creator' | 'admin' | 'member' || null;
   }
 }
 

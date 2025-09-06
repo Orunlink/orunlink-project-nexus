@@ -236,8 +236,8 @@ const { toast } = useToast();
           </div>
           
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon">
-              <Users className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
+              <Settings className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -342,6 +342,14 @@ const { toast } = useToast();
           <div className="p-3 bg-background border-t text-center text-sm text-muted-foreground">
             Join this project chat to send messages.
           </div>
+        )}
+        
+        {showSettings && (
+          <ChatSettings
+            projectId={projectId!}
+            onClose={() => setShowSettings(false)}
+            onUpdate={loadChatData}
+          />
         )}
       </div>
     </Layout>

@@ -1,12 +1,12 @@
-
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileSectionProps {
   name: string;
@@ -16,9 +16,11 @@ interface ProfileSectionProps {
   following: number;
   projects: number;
   username?: string;
+  userId?: string;
   isOwnProfile?: boolean;
   onFollow?: () => void;
   isFollowing?: boolean;
+  onFollowersUpdate?: (count: number) => void;
 }
 
 const ProfileSection = ({
@@ -29,14 +31,56 @@ const ProfileSection = ({
   following,
   projects,
   username = "",
+  userId,
   isOwnProfile = false,
   onFollow,
   isFollowing = false,
+  onFollowersUpdate,
 }: ProfileSectionProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, updateProfile } = useAuth();
   const [uploading, setUploading] = useState(false);
+  const [isFollowingUser, setIsFollowingUser] = useState(isFollowing);
+  const [followerCount, setFollowerCount] = useState(followers);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  useEffect(() => {
+    setIsFollowingUser(isFollowing);
+    setFollowerCount(followers);
+  }, [isFollowing, followers]);
+
+  // Set up real-time subscription for follower count updates
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel('follow-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${userId}`
+        },
+        async () => {
+          // Refresh follower count when follows change
+          try {
+            const count = await api.getFollowerCount(userId);
+            setFollowerCount(count);
+            onFollowersUpdate?.(count);
+          } catch (error) {
+            console.error('Error updating follower count:', error);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, onFollowersUpdate]);
 
   const handleUploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -94,6 +138,43 @@ const ProfileSection = ({
     }
   };
 
+  const handleFollow = async () => {
+    if (!user || !userId || isFollowLoading) return;
+    
+    try {
+      setIsFollowLoading(true);
+      
+      if (isFollowingUser) {
+        await api.unfollowUser(userId);
+        setIsFollowingUser(false);
+        setFollowerCount(prev => prev - 1);
+        toast({
+          title: "Unfollowed",
+          description: `You unfollowed ${name}`,
+        });
+      } else {
+        await api.followUser(userId);
+        setIsFollowingUser(true);
+        setFollowerCount(prev => prev + 1);
+        toast({
+          title: "Following",
+          description: `You are now following ${name}`,
+        });
+      }
+      
+      onFollow?.();
+    } catch (error) {
+      console.error('Error following/unfollowing user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFollowLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white overflow-hidden">
       <div className="flex flex-col items-center pt-6 pb-4">
@@ -111,8 +192,8 @@ const ProfileSection = ({
           {isOwnProfile && (
             <div className="absolute -bottom-1 -right-1">
               <label htmlFor="avatar-upload" className="cursor-pointer">
-                <div className="bg-orunlink-purple h-8 w-8 rounded-full flex items-center justify-center shadow-md">
-                  <Upload className="h-4 w-4 text-white" />
+                <div className="bg-primary h-8 w-8 rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors">
+                  <Upload className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <input 
                   id="avatar-upload" 
@@ -131,25 +212,25 @@ const ProfileSection = ({
           <h2 className="text-lg font-bold text-center mt-1">@{username}</h2>
         )}
         
-        <p className="text-gray-600 text-sm mt-2 max-w-xs text-center px-6">
+        <p className="text-muted-foreground text-sm mt-2 max-w-xs text-center px-6">
           {bio || (isOwnProfile ? "Add a bio to tell others about yourself..." : "")}
         </p>
 
         <div className="flex justify-center space-x-12 mt-4 mb-6">
           <div className="text-center">
-            <div className="font-bold text-lg">{followers.toLocaleString()}</div>
-            <div className="text-gray-500 text-sm">Followers</div>
+            <div className="font-bold text-lg">{followerCount.toLocaleString()}</div>
+            <div className="text-muted-foreground text-sm">Followers</div>
           </div>
           <div className="text-center">
             <div className="font-bold text-lg">{following.toLocaleString()}</div>
-            <div className="text-gray-500 text-sm">Following</div>
+            <div className="text-muted-foreground text-sm">Following</div>
           </div>
         </div>
 
         <div className="flex space-x-3 px-6 w-full">
           {isOwnProfile ? (
             <Button 
-              className="flex-1 bg-orunlink-purple hover:bg-orunlink-dark text-white font-medium"
+              className="flex-1"
               onClick={() => navigate("/edit-profile")}
             >
               Edit Profile
@@ -157,12 +238,14 @@ const ProfileSection = ({
           ) : (
             <>
               <Button 
-                className={`flex-1 ${isFollowing ? 'bg-gray-500 hover:bg-gray-600' : 'bg-orunlink-purple hover:bg-orunlink-dark'} text-white font-medium`}
-                onClick={onFollow}
+                className="flex-1 transition-colors animate-scale-in"
+                variant={isFollowingUser ? "outline" : "default"}
+                onClick={handleFollow}
+                disabled={isFollowLoading}
               >
-                {isFollowing ? 'Following' : 'Follow'}
+                {isFollowLoading ? "..." : isFollowingUser ? 'Following' : 'Follow'}
               </Button>
-              <Button className="flex-1 bg-white text-gray-800 hover:bg-gray-100 border border-gray-200">
+              <Button variant="outline" className="flex-1">
                 Message
               </Button>
             </>
@@ -172,10 +255,9 @@ const ProfileSection = ({
             <Button 
               variant="outline"
               size="icon"
-              className="rounded-md border border-gray-200"
               onClick={() => navigate("/account-settings")}
             >
-              <User className="h-5 w-5 text-gray-600" />
+              <User className="h-5 w-5" />
             </Button>
           )}
         </div>

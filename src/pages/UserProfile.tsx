@@ -32,10 +32,12 @@ const UserProfile = () => {
         setIsLoading(true);
         
         // Fetch user profile and projects in parallel
-        const [profile, projects, projectCount] = await Promise.all([
+        const [profile, projects, projectCount, followerCount, followingCount] = await Promise.all([
           api.getProfile(userId),
           api.getUserProjects(userId),
-          api.getUserProjectCount(userId)
+          api.getUserProjectCount(userId),
+          api.getFollowerCount(userId),
+          api.getFollowingCount(userId)
         ]);
         
         if (profile) {
@@ -44,11 +46,14 @@ const UserProfile = () => {
         
         setUserProjects(projects);
         setProjectsCount(projectCount);
+        setFollowerCount(followerCount);
+        setFollowingCount(followingCount);
         
-        // TODO: Implement followers/following functionality
-        setFollowerCount(0);
-        setFollowingCount(0);
-        setIsFollowing(false);
+        // Check if current user is following this user
+        if (user && user.id !== userId) {
+          const following = await api.isFollowing(user.id, userId);
+          setIsFollowing(following);
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -60,9 +65,13 @@ const UserProfile = () => {
   }, [userId]);
 
   const handleFollow = () => {
-    // TODO: Implement follow functionality
+    // Follow functionality is now handled in ProfileSection component
     setIsFollowing(!isFollowing);
     setFollowerCount(prev => isFollowing ? prev - 1 : prev + 1);
+  };
+
+  const handleFollowersUpdate = (count: number) => {
+    setFollowerCount(count);
   };
 
   const getProjectImage = (project: Project) => {
@@ -134,9 +143,11 @@ const UserProfile = () => {
             following={followingCount}
             projects={projectsCount}
             username={userData?.username || ""}
+            userId={userId}
             isOwnProfile={false}
             onFollow={handleFollow}
             isFollowing={isFollowing}
+            onFollowersUpdate={handleFollowersUpdate}
           />
           
           <div className="flex justify-center border-b border-gray-100">

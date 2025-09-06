@@ -114,11 +114,42 @@ export interface ChatParticipant {
   user_id: string;
   joined_at: string;
   last_read_at: string;
+  role: 'creator' | 'admin' | 'member';
   user?: {
     username: string;
     full_name: string;
     avatar_url: string;
   };
+}
+
+export interface Follow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+  follower?: {
+    username: string;
+    full_name: string;
+    avatar_url: string;
+  };
+  following?: {
+    username: string;
+    full_name: string;
+    avatar_url: string;
+  };
+}
+
+export interface GroupChatSettings {
+  id: string;
+  project_id: string;
+  theme_color: string;
+  background_style: string;
+  title?: string;
+  description?: string;
+  avatar_url?: string;
+  notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FileUploadResult {
@@ -190,4 +221,18 @@ export interface ApiProvider {
   uploadFile(bucket: string, file: File, path?: string): Promise<FileUploadResult>;
   getFileUrl(bucket: string, path: string): string;
   deleteFile(bucket: string, path: string): Promise<void>;
+  
+  // Following system methods
+  followUser(followingId: string): Promise<Follow>;
+  unfollowUser(followingId: string): Promise<void>;
+  getFollowers(userId: string): Promise<Follow[]>;
+  getFollowing(userId: string): Promise<Follow[]>;
+  getFollowerCount(userId: string): Promise<number>;
+  getFollowingCount(userId: string): Promise<number>;
+  isFollowing(followerId: string, followingId: string): Promise<boolean>;
+  
+  // Group chat settings methods
+  getGroupChatSettings(projectId: string): Promise<GroupChatSettings | null>;
+  updateGroupChatSettings(projectId: string, settings: Partial<GroupChatSettings>): Promise<GroupChatSettings>;
+  getUserChatRole(projectId: string, userId: string): Promise<'creator' | 'admin' | 'member' | null>;
 }
