@@ -5,6 +5,8 @@ import { api, User } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Session } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
+import { ErrorHandler } from '@/utils/errorHandler';
 
 interface AuthContextType {
   user: User | null;
@@ -38,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
     } catch (error) {
-      console.error('Error refreshing user:', error);
+      logger.error('Error refreshing user', error, { context: 'refreshUser' });
       setUser(null);
     }
   };
@@ -47,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        logger.debug('Auth state changed', { event, userId: session?.user?.id });
         
         // Update session and user state synchronously
         setSession(session);
@@ -67,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(null);
           
           // Redirect to auth if on protected route
-          const publicPaths = ['/auth', '/login', '/signup', '/forgot-password', '/welcome'];
+          const publicPaths = ['/auth', '/forgot-password', '/welcome'];
           if (!publicPaths.includes(location.pathname)) {
             navigate('/auth');
           }
@@ -102,13 +104,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: 'Welcome back to Orunlink',
       });
     } catch (error: any) {
-      console.error('Error signing in:', error);
+      const appError = ErrorHandler.handle(error, 'signIn');
       toast({
         title: 'Login failed',
-        description: error.message || 'Please check your credentials and try again',
+        description: appError.message,
         variant: 'destructive',
       });
-      throw error;
+      throw appError;
     } finally {
       setIsLoading(false);
     }
@@ -131,13 +133,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } catch (error: any) {
-      console.error('Error signing up:', error);
+      const appError = ErrorHandler.handle(error, 'signUp');
       toast({
         title: 'Signup failed',
-        description: error.message || 'There was an error creating your account',
+        description: appError.message,
         variant: 'destructive',
       });
-      throw error;
+      throw appError;
     } finally {
       setIsLoading(false);
     }

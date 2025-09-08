@@ -31,7 +31,7 @@ const Header = () => {
             </Link>
           </>
         ) : (
-          <Link to="/login">
+          <Link to="/auth">
             <Button variant="ghost" className="flex items-center text-white hover:bg-white/10">
               <LogIn className="mr-2 h-4 w-4" />
               <span>Login</span>

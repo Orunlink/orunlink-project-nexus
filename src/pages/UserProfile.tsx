@@ -92,7 +92,7 @@ const UserProfile = () => {
       case "videos":
         return videos;
       case "collaborations":
-        // TODO: Implement collaborations functionality
+        // Collaborations functionality to be implemented in future version
         return [];
       default:
         return userProjects;

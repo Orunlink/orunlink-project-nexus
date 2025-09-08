@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/api";
 import { Project } from "@/services/api/types";
 import { isVideoUrl } from "@/utils/videoUtils";
+import { logger } from "@/utils/logger";
 
 type TabType = "all" | "projects" | "videos" | "collaborations" | "saved";
 
@@ -43,9 +44,11 @@ const Profile = () => {
         setSavedProjects(saved);
         setProjectsCount(projectCount);
         
-        // TODO: Implement followers/following functionality
-        setFollowerCount(0);
-        setFollowingCount(0);
+        // Get follower/following counts using the API
+        const followerCount = await api.getFollowerCount(user.id);
+        const followingCount = await api.getFollowingCount(user.id);
+        setFollowerCount(followerCount);
+        setFollowingCount(followingCount);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -74,7 +77,7 @@ const Profile = () => {
       case "videos":
         return videos;
       case "collaborations":
-        // TODO: Implement collaborations functionality
+        // Collaborations functionality to be implemented in future version
         return [];
       case "saved":
         return savedProjects;

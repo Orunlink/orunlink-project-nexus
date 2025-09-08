@@ -41,8 +41,6 @@ const App = () => (
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/signup" element={<Auth />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/moderation" element={<Moderation />} />
             
