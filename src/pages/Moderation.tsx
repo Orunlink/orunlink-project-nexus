@@ -32,8 +32,8 @@ const mockContent = [
   { id: "pr234", type: "project", author: "user234", title: "New Project Idea", reportCount: 2, createdAt: "2025-04-15T08:20:00Z" },
 ];
 
-// Access code for the moderation page
-const ACCESS_CODE = "orunlink25";
+// Access code for the moderation page - move to environment variables in production
+const ACCESS_CODE = process.env.MODERATION_ACCESS_CODE || "orunlink25";
 
 const Moderation = () => {
   const navigate = useNavigate();

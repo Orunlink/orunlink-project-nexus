@@ -156,13 +156,21 @@ export class SupabaseProvider implements ApiProvider {
     const session = await this.getSession();
     if (!session?.user?.id) throw new Error("User not authenticated");
     
+    // Import sanitizer locally to avoid circular dependencies
+    const { sanitizer } = await import('../../utils/sanitize');
+    
+    const sanitizedData = sanitizer.sanitizeProfile({
+      username: profile.username,
+      full_name: profile.full_name,
+      bio: profile.bio
+    });
+    
     const { data, error } = await supabase
       .from("profiles")
       .update({
-        username: profile.username,
-        full_name: profile.full_name,
-        bio: profile.bio,
+        ...sanitizedData,
         avatar_url: profile.avatar_url,
+        updated_at: new Date().toISOString()
       })
       .eq("user_id", session.user.id)
       .select()
@@ -383,12 +391,21 @@ export class SupabaseProvider implements ApiProvider {
   }
 
   async addComment(projectId: string, userId: string, content: string): Promise<Comment | null> {
+    // Import sanitizer locally to avoid circular dependencies
+    const { sanitizer } = await import('../../utils/sanitize');
+    
+    const sanitizedContent = sanitizer.sanitizeComment(content);
+    
+    if (!sanitizedContent.trim()) {
+      throw new Error('Comment content cannot be empty');
+    }
+
     const { data, error } = await supabase
       .from("comments")
       .insert({
         project_id: projectId,
         user_id: userId,
-        content
+        content: sanitizedContent
       })
       .select()
       .single();
@@ -1420,15 +1437,37 @@ async updateJoinRequestStatus(requestId: string, status: "accepted" | "rejected"
   }
 
   async getUserChatRole(projectId: string, userId: string): Promise<'creator' | 'admin' | 'member' | null> {
-    const { data, error } = await supabase
-      .from('chat_participants')
-      .select('role')
-      .eq('project_id', projectId)
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (error) throw error;
-    return data?.role as 'creator' | 'admin' | 'member' || null;
+    try {
+      // First check if user is project owner
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .select('owner_id')
+        .eq('id', projectId)
+        .eq('owner_id', userId)
+        .single();
+
+      if (!projectError && project) {
+        return 'creator';
+      }
+
+      // Then check chat participants
+      const { data, error } = await supabase
+        .from('chat_participants')
+        .select('role')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error getting user chat role:', error);
+        return null;
+      }
+
+      return data?.role as 'creator' | 'admin' | 'member' || null;
+    } catch (error) {
+      console.error('Error getting user chat role:', error);
+      return null;
+    }
   }
 }
 

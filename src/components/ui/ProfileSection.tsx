@@ -144,22 +144,41 @@ const ProfileSection = ({
     try {
       setIsFollowLoading(true);
       
+      // Optimistic update for better UX
+      const previousState = { isFollowingUser, followerCount };
+      
       if (isFollowingUser) {
-        await api.unfollowUser(userId);
         setIsFollowingUser(false);
-        setFollowerCount(prev => prev - 1);
-        toast({
-          title: "Unfollowed",
-          description: `You unfollowed ${name}`,
-        });
+        setFollowerCount(prev => Math.max(0, prev - 1));
+        
+        try {
+          await api.unfollowUser(userId);
+          toast({
+            title: "Unfollowed",
+            description: `You unfollowed ${name}`,
+          });
+        } catch (error) {
+          // Revert on error
+          setIsFollowingUser(previousState.isFollowingUser);
+          setFollowerCount(previousState.followerCount);
+          throw error;
+        }
       } else {
-        await api.followUser(userId);
         setIsFollowingUser(true);
         setFollowerCount(prev => prev + 1);
-        toast({
-          title: "Following",
-          description: `You are now following ${name}`,
-        });
+        
+        try {
+          await api.followUser(userId);
+          toast({
+            title: "Following",
+            description: `You are now following ${name}`,
+          });
+        } catch (error) {
+          // Revert on error
+          setIsFollowingUser(previousState.isFollowingUser);
+          setFollowerCount(previousState.followerCount);
+          throw error;
+        }
       }
       
       onFollow?.();

@@ -394,6 +394,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_action_url?: string
+          p_message: string
+          p_related_id?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_follower_count: {
         Args: { user_id: string }
         Returns: number
