@@ -33,7 +33,7 @@ const mockContent = [
 ];
 
 // Access code for the moderation page - move to environment variables in production
-const ACCESS_CODE = process.env.MODERATION_ACCESS_CODE || "orunlink25";
+const ACCESS_CODE = import.meta.env.VITE_MODERATION_ACCESS_CODE || "orunlink25";
 
 const Moderation = () => {
   const navigate = useNavigate();
