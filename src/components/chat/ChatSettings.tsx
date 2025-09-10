@@ -160,7 +160,7 @@ const ChatSettings = ({ projectId, onClose, onUpdate }: ChatSettingsProps) => {
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to save settings",
         variant: "destructive",
       });

@@ -178,7 +178,7 @@ const { toast } = useToast();
   };
 
   const handleBack = () => {
-    navigate(`/project/${projectId}`);
+    navigate('/projects');
   };
 
   if (isLoading) {

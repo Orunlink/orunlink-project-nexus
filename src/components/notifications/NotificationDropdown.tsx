@@ -72,11 +72,15 @@ const NotificationDropdown = () => {
           table: 'notifications',
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
+        async (payload) => {
+          console.log('New notification received:', payload);
+          // Reload all notifications to ensure consistency
+          await loadNotifications();
           const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
-          toast({ title: newNotification.title, description: newNotification.message });
+          toast({ 
+            title: newNotification.title, 
+            description: newNotification.message 
+          });
         }
       )
       .on(
@@ -87,10 +91,10 @@ const NotificationDropdown = () => {
           table: 'notifications',
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
-          const updatedNotification = payload.new as Notification;
-          setNotifications(prev => prev.map(n => n.id === updatedNotification.id ? updatedNotification : n));
-          if (updatedNotification.is_read) setUnreadCount(prev => Math.max(0, prev - 1));
+        async (payload) => {
+          console.log('Notification updated:', payload);
+          // Reload all notifications to ensure consistency  
+          await loadNotifications();
         }
       )
       .subscribe();
