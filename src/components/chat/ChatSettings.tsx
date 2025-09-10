@@ -81,7 +81,11 @@ const ChatSettings = ({ projectId, onClose, onUpdate }: ChatSettingsProps) => {
 
   useEffect(() => {
     loadChatData();
-    setupRealtimeSubscription();
+    const cleanup = setupRealtimeSubscription();
+    
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+    };
   }, [projectId, user]);
 
   const loadChatData = async () => {
@@ -397,12 +401,12 @@ const ChatSettings = ({ projectId, onClose, onUpdate }: ChatSettingsProps) => {
                   <button
                     key={color.id}
                     className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
-                      settings?.theme_color === color.id ? 'border-primary' : 'border-border'
+                      settings?.theme_color === color.id ? 'border-primary ring-2 ring-primary/20' : 'border-border'
                     }`}
                     onClick={() => setSettings(prev => prev ? {...prev, theme_color: color.id} : null)}
                   >
                     <div className={`w-full h-8 rounded ${color.color} mb-2`}></div>
-                    <p className="text-xs">{color.name}</p>
+                    <p className="text-xs font-medium">{color.name}</p>
                   </button>
                 ))}
               </div>
@@ -415,12 +419,12 @@ const ChatSettings = ({ projectId, onClose, onUpdate }: ChatSettingsProps) => {
                   <button
                     key={style.id}
                     className={`p-3 rounded-lg border-2 transition-all hover:scale-[1.02] ${
-                      settings?.background_style === style.id ? 'border-primary' : 'border-border'
+                      settings?.background_style === style.id ? 'border-primary ring-2 ring-primary/20' : 'border-border'
                     }`}
                     onClick={() => setSettings(prev => prev ? {...prev, background_style: style.id} : null)}
                   >
-                    <div className={`w-full h-8 rounded ${style.preview} mb-2`}></div>
-                    <p className="text-sm">{style.name}</p>
+                    <div className={`w-full h-8 rounded ${style.preview} mb-2 border`}></div>
+                    <p className="text-sm font-medium">{style.name}</p>
                   </button>
                 ))}
               </div>

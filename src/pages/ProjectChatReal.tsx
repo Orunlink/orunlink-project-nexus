@@ -21,6 +21,7 @@ const [messages, setMessages] = useState<ChatMessage[]>([]);
 const [participants, setParticipants] = useState<ChatParticipant[]>([]);
 const [isLoading, setIsLoading] = useState(true);
 const [project, setProject] = useState<any>(null);
+const [chatSettings, setChatSettings] = useState<any>(null);
 const [isMember, setIsMember] = useState(false);
 const [isOwner, setIsOwner] = useState(false);
 const [joinPending, setJoinPending] = useState(false);
@@ -56,9 +57,14 @@ const { toast } = useToast();
     try {
       setIsLoading(true);
       
-      // Load project info
-      const projectData = await api.getProjectById(projectId);
+      // Load project info and chat settings
+      const [projectData, settingsData] = await Promise.all([
+        api.getProjectById(projectId),
+        api.getGroupChatSettings(projectId)
+      ]);
+      
       setProject(projectData);
+      setChatSettings(settingsData);
       const ownerId = projectData?.owner_id;
       const amOwner = !!ownerId && user.id === ownerId;
       setIsOwner(amOwner);
@@ -203,14 +209,32 @@ const { toast } = useToast();
           </Button>
         </div>
       </Layout>
-    );
+  );
   }
+
+  // Apply chat theme styles
+  const themeStyle = chatSettings?.theme_color ? {
+    '--chat-primary': chatSettings.theme_color
+  } as React.CSSProperties : {};
+
+  const getBackgroundClass = () => {
+    if (!chatSettings?.background_style) return 'bg-background';
+    
+    switch (chatSettings.background_style) {
+      case 'gradient':
+        return 'bg-gradient-to-br from-primary/5 to-secondary/5';
+      case 'pattern':
+        return 'bg-background bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,.15)_1px,transparent_0)] bg-[length:20px_20px]';
+      default:
+        return 'bg-background';
+    }
+  };
 
   return (
     <Layout hideBottomNav hideHeader>
-      <div className="flex flex-col h-screen">
+      <div className="flex flex-col h-screen" style={themeStyle}>
         {/* Chat header */}
-        <div className="flex items-center justify-between p-3 bg-primary text-primary-foreground">
+        <div className="flex items-center justify-between p-3" style={{backgroundColor: chatSettings?.theme_color || 'hsl(var(--primary))', color: 'white'}}>
           <div className="flex items-center">
             <Button 
               onClick={handleBack}
@@ -243,7 +267,7 @@ const { toast } = useToast();
         </div>
         
         {/* Messages area */}
-        <div className="flex-1 overflow-y-auto px-4 py-2 bg-background">
+        <div className={`flex-1 overflow-y-auto px-4 py-2 ${getBackgroundClass()}`}>
           {(!isMember && !isOwner) ? (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-sm">
@@ -292,9 +316,10 @@ const { toast } = useToast();
                           <div
                             className={`py-2 px-3 rounded-lg ${
                               isMe
-                                ? "bg-primary text-primary-foreground rounded-br-none"
+                                ? "text-white rounded-br-none"
                                 : "bg-muted text-foreground rounded-tl-none"
                             }`}
+                            style={isMe ? {backgroundColor: chatSettings?.theme_color || 'hsl(var(--primary))'} : {}}
                           >
                             <p className="text-sm">{message.content}</p>
                           </div>
@@ -348,7 +373,9 @@ const { toast } = useToast();
           <ChatSettings
             projectId={projectId!}
             onClose={() => setShowSettings(false)}
-            onUpdate={loadChatData}
+            onUpdate={() => {
+              loadChatData(); // Reload chat data to get updated settings
+            }}
           />
         )}
       </div>
